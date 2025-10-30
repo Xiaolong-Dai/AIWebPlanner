@@ -1,0 +1,27 @@
+{
+  "name": "ai-web-planner",
+  "version": "1.0.0",
+  "description": "AI智能旅行规划Web应用",
+  "scripts": {
+    "dev": "concurrently \"node proxy-server.js\" \"cd frontend && npm run dev\"",
+    "proxy": "node proxy-server.js",
+    "frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm install && npm run build",
+    "vercel-build": "cd frontend && npm install && npm run build"
+  },
+  "keywords": [
+    "ai",
+    "travel",
+    "planner"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

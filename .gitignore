@@ -1,0 +1,33 @@
+# 环境变量文件（重要：防止 API Key 泄露）
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
+
+# 敏感文件
+*.key
+*.pem
+config/secrets.js
+config/secrets.ts
+
+# Docker override
+docker-compose.override.yml
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# 日志
+logs
+*.log
+
+# 依赖
+node_modules
+
+# 构建产物
+dist
+build
+

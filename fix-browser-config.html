@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修复浏览器配置 - AI Web Planner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            display: none;
+        }
+        .error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            display: none;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        .config-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 修复 AI 服务配置</h1>
+        <p class="subtitle">解决 API Endpoint 404 错误问题</p>
+
+        <div class="info">
+            <strong>问题原因:</strong> 浏览器 localStorage 中保存了错误的 API Endpoint 配置<br>
+            <strong>解决方案:</strong> 清除旧配置并重新加载正确的配置
+        </div>
+
+        <div class="step">
+            <h3>步骤 1: 检查当前配置</h3>
+            <button onclick="checkConfig()">检查配置</button>
+            <div id="currentConfig" class="config-display" style="display:none;"></div>
+        </div>
+
+        <div class="step">
+            <h3>步骤 2: 清除错误配置</h3>
+            <button onclick="clearConfig()">清除 localStorage 配置</button>
+            <div id="clearSuccess" class="success"></div>
+        </div>
+
+        <div class="step">
+            <h3>步骤 3: 更新为正确配置</h3>
+            <button onclick="updateConfig()">更新为正确的 Endpoint</button>
+            <div id="updateSuccess" class="success"></div>
+            <div id="updateError" class="error"></div>
+        </div>
+
+        <div class="step">
+            <h3>步骤 4: 刷新页面</h3>
+            <button onclick="reloadPage()">刷新页面</button>
+            <button class="secondary" onclick="openApp()">打开应用</button>
+        </div>
+
+        <div class="info">
+            <strong>正确的配置:</strong><br>
+            API Endpoint: <code>https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation</code>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'ai-web-planner-api-config';
+        const CORRECT_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+
+        function checkConfig() {
+            const configStr = localStorage.getItem(STORAGE_KEY);
+            const display = document.getElementById('currentConfig');
+            
+            if (configStr) {
+                try {
+                    const config = JSON.parse(configStr);
+                    display.textContent = JSON.stringify(config, null, 2);
+                    display.style.display = 'block';
+                    
+                    // 检查 endpoint
+                    const endpoint = config.state?.config?.llm_endpoint;
+                    if (endpoint && endpoint !== CORRECT_ENDPOINT) {
+                        display.style.borderLeft = '4px solid #dc3545';
+                        display.innerHTML = JSON.stringify(config, null, 2) + 
+                            '\n\n❌ 错误: Endpoint 不正确!\n当前: ' + endpoint + 
+                            '\n正确: ' + CORRECT_ENDPOINT;
+                    } else if (endpoint === CORRECT_ENDPOINT) {
+                        display.style.borderLeft = '4px solid #28a745';
+                        display.innerHTML = JSON.stringify(config, null, 2) + 
+                            '\n\n✅ Endpoint 配置正确!';
+                    }
+                } catch (e) {
+                    display.textContent = '配置格式错误: ' + e.message;
+                    display.style.display = 'block';
+                }
+            } else {
+                display.textContent = '未找到配置 (将使用环境变量)';
+                display.style.display = 'block';
+            }
+        }
+
+        function clearConfig() {
+            localStorage.removeItem(STORAGE_KEY);
+            const successDiv = document.getElementById('clearSuccess');
+            successDiv.textContent = '✅ 已清除 localStorage 配置';
+            successDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function updateConfig() {
+            const configStr = localStorage.getItem(STORAGE_KEY);
+            const successDiv = document.getElementById('updateSuccess');
+            const errorDiv = document.getElementById('updateError');
+            
+            try {
+                if (configStr) {
+                    const config = JSON.parse(configStr);
+                    
+                    if (config.state && config.state.config) {
+                        config.state.config.llm_endpoint = CORRECT_ENDPOINT;
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+                        
+                        successDiv.textContent = '✅ 已更新 Endpoint 为正确地址';
+                        successDiv.style.display = 'block';
+                        errorDiv.style.display = 'none';
+                    } else {
+                        errorDiv.textContent = '❌ 配置结构不正确，请先清除配置';
+                        errorDiv.style.display = 'block';
+                        successDiv.style.display = 'none';
+                    }
+                } else {
+                    errorDiv.textContent = '❌ 未找到配置，请先清除配置后刷新页面';
+                    errorDiv.style.display = 'block';
+                    successDiv.style.display = 'none';
+                }
+                
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            } catch (e) {
+                errorDiv.textContent = '❌ 更新失败: ' + e.message;
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+            }
+        }
+
+        function reloadPage() {
+            location.reload();
+        }
+
+        function openApp() {
+            window.open('http://localhost:5173', '_blank');
+        }
+
+        // 自动检查配置
+        window.onload = function() {
+            checkConfig();
+        };
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,61 @@
+.logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 16px;
+  border-radius: 8px;
+}
+
+.logo h2 {
+  color: white;
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.site-layout-header {
+  background: #fff;
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.user-info:hover {
+  background: #f0f0f0;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .user-email {
+    display: none;
+  }
+}
+

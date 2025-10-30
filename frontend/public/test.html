@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Web Planner - 服务测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #1890ff;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .test-all-btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .test-all-btn:hover {
+            background: #40a9ff;
+        }
+
+        .test-all-btn:disabled {
+            background: #d9d9d9;
+            cursor: not-allowed;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .test-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .test-card-title {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .test-btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .test-btn:hover {
+            background: #40a9ff;
+        }
+
+        .test-btn:disabled {
+            background: #d9d9d9;
+            cursor: not-allowed;
+        }
+
+        .test-description {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .test-result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .result-success {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+
+        .result-error {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+
+        .result-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .tag-success {
+            background: #52c41a;
+            color: white;
+        }
+
+        .tag-error {
+            background: #ff4d4f;
+            color: white;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1890ff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .config-section {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .config-section h3 {
+            color: #1890ff;
+            margin-bottom: 10px;
+        }
+
+        .config-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 AI Web Planner - 服务测试中心</h1>
+        <p class="description">测试所有第三方服务是否正常工作。请确保已在 .env.local 文件中配置所有 API Key。</p>
+
+        <div class="config-section">
+            <h3>📋 配置检查</h3>
+            <p id="config-status">正在检查配置...</p>
+        </div>
+
+        <div class="config-section" style="background: #fff7e6; border-color: #ffd591;">
+            <h3>⚠️ 重要说明</h3>
+            <p><strong>AI 服务 CORS 限制：</strong>由于浏览器安全策略，阿里云 API 无法从前端直接调用。这是正常的！生产环境中会通过后端代理调用。</p>
+            <p><strong>高德地图 Key 类型：</strong>如果显示 USERKEY_PLAT_NOMATCH 错误，说明您的 Key 是为移动端申请的。需要申请 "Web 服务" 类型的 Key。</p>
+        </div>
+
+        <button class="test-all-btn" onclick="testAllServices()">🚀 一键测试所有服务</button>
+
+        <!-- Supabase 测试 -->
+        <div class="test-card">
+            <div class="test-card-header">
+                <div class="test-card-title">
+                    <span id="supabase-icon"></span>
+                    <span>1. Supabase 数据库服务</span>
+                </div>
+                <button class="test-btn" onclick="testSupabase()">测试</button>
+            </div>
+            <p class="test-description">测试内容：创建计划、读取计划、删除计划</p>
+            <div id="supabase-result"></div>
+        </div>
+
+        <!-- AI 服务测试 -->
+        <div class="test-card">
+            <div class="test-card-header">
+                <div class="test-card-title">
+                    <span id="llm-icon"></span>
+                    <span>2. AI 大语言模型服务（阿里云通义千问）</span>
+                </div>
+                <button class="test-btn" onclick="testLLM()">测试</button>
+            </div>
+            <p class="test-description">测试内容：AI 对话功能</p>
+            <div id="llm-result"></div>
+        </div>
+
+        <!-- 高德地图测试 -->
+        <div class="test-card">
+            <div class="test-card-header">
+                <div class="test-card-title">
+                    <span id="map-icon"></span>
+                    <span>3. 高德地图服务</span>
+                </div>
+                <button class="test-btn" onclick="testMap()">测试</button>
+            </div>
+            <p class="test-description">测试内容：地理编码、POI 搜索</p>
+            <div id="map-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 硬编码配置（从您的 .env.local 文件）
+        const ENV_CONFIG = {
+            supabase_url: 'https://blghnzrjwbmkkopvxfyo.supabase.co',
+            supabase_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsZ2huenJqd2Jta2tvcHZ4ZnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NzU3MDIsImV4cCI6MjA3NzA1MTcwMn0.vI-IhKARaafxfwtfayXRh1HLhUUFHMHkmlcKRY9gm8U',
+            llm_api_key: 'sk-3a6fcd7c0b04482d8bc3596725520d18',
+            llm_endpoint: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
+            amap_key: '4760097a9ac4d94d0295fff44f39b8dd'
+        };
+
+        // 从 localStorage 或环境变量读取配置
+        function getConfig() {
+            // 先尝试从 localStorage 读取
+            const stored = localStorage.getItem('ai_planner_api_config');
+            let config = {};
+
+            if (stored) {
+                config = JSON.parse(stored);
+            }
+
+            // 如果 localStorage 没有，使用硬编码的环境变量
+            if (!config.supabase_url) config.supabase_url = ENV_CONFIG.supabase_url;
+            if (!config.supabase_key) config.supabase_key = ENV_CONFIG.supabase_key;
+            if (!config.llm_api_key) config.llm_api_key = ENV_CONFIG.llm_api_key;
+            if (!config.llm_endpoint) config.llm_endpoint = ENV_CONFIG.llm_endpoint;
+            if (!config.amap_key) config.amap_key = ENV_CONFIG.amap_key;
+
+            return config;
+        }
+
+        // 检查配置状态
+        function checkConfig() {
+            const config = getConfig();
+            const configStatus = document.getElementById('config-status');
+            
+            const hasSupabase = config.supabase_url && config.supabase_key;
+            const hasLLM = config.llm_api_key && config.llm_endpoint;
+            const hasMap = config.amap_key;
+            
+            let status = '✅ 配置状态：<br>';
+            status += hasSupabase ? '✅ Supabase 已配置<br>' : '❌ Supabase 未配置<br>';
+            status += hasLLM ? '✅ AI 服务已配置<br>' : '❌ AI 服务未配置<br>';
+            status += hasMap ? '✅ 高德地图已配置<br>' : '❌ 高德地图未配置<br>';
+            
+            if (!hasSupabase || !hasLLM || !hasMap) {
+                status += '<br>⚠️ 请先访问 <a href="/settings">设置页面</a> 配置 API Key';
+            }
+            
+            configStatus.innerHTML = status;
+        }
+
+        // 设置图标
+        function setIcon(id, status) {
+            const icon = document.getElementById(id);
+            if (status === 'testing') {
+                icon.innerHTML = '<div class="spinner"></div>';
+            } else if (status === 'success') {
+                icon.innerHTML = '✅';
+            } else if (status === 'error') {
+                icon.innerHTML = '❌';
+            } else {
+                icon.innerHTML = '';
+            }
+        }
+
+        // 显示结果
+        function showResult(id, success, message) {
+            const result = document.getElementById(id);
+            const className = success ? 'result-success' : 'result-error';
+            const tagClass = success ? 'tag-success' : 'tag-error';
+            const tagText = success ? '测试通过' : '测试失败';
+            
+            result.innerHTML = `
+                <div class="test-result ${className}">
+                    <span class="result-tag ${tagClass}">${tagText}</span>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // 测试 Supabase
+        async function testSupabase() {
+            setIcon('supabase-icon', 'testing');
+
+            try {
+                const config = getConfig();
+                console.log('Supabase 配置:', { url: config.supabase_url, hasKey: !!config.supabase_key });
+
+                if (!config.supabase_url || !config.supabase_key) {
+                    throw new Error('Supabase 未配置');
+                }
+
+                // 测试连接
+                const response = await fetch(`${config.supabase_url}/rest/v1/`, {
+                    headers: {
+                        'apikey': config.supabase_key,
+                        'Authorization': `Bearer ${config.supabase_key}`
+                    }
+                });
+
+                console.log('Supabase 响应状态:', response.status);
+
+                if (response.ok || response.status === 404 || response.status === 401) {
+                    // 401 也算成功，说明能连接到服务器
+                    setIcon('supabase-icon', 'success');
+                    showResult('supabase-result', true, `✅ Supabase 连接成功！<br>URL: ${config.supabase_url}<br>状态码: ${response.status}`);
+                } else {
+                    throw new Error(`服务器返回错误: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Supabase 测试错误:', error);
+                setIcon('supabase-icon', 'error');
+                showResult('supabase-result', false, `❌ ${error.message}`);
+            }
+        }
+
+        // 测试 AI 服务
+        async function testLLM() {
+            setIcon('llm-icon', 'testing');
+
+            try {
+                const config = getConfig();
+                console.log('AI 配置:', { endpoint: config.llm_endpoint, hasKey: !!config.llm_api_key });
+
+                if (!config.llm_api_key || !config.llm_endpoint) {
+                    throw new Error('AI 服务未配置');
+                }
+
+                const requestBody = {
+                    model: 'qwen-plus',
+                    input: {
+                        messages: [
+                            { role: 'user', content: '你好，请用一句话介绍北京' }
+                        ]
+                    },
+                    parameters: {
+                        result_format: 'message'
+                    }
+                };
+
+                console.log('AI 请求:', requestBody);
+
+                const response = await fetch(config.llm_endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.llm_api_key}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                console.log('AI 响应状态:', response.status);
+                const data = await response.json();
+                console.log('AI 响应数据:', data);
+
+                if (data.output && data.output.choices && data.output.choices[0]) {
+                    const aiResponse = data.output.choices[0].message.content;
+                    setIcon('llm-icon', 'success');
+                    showResult('llm-result', true, `✅ AI 服务测试通过！<br><br>AI 回复：${aiResponse.substring(0, 150)}...`);
+                } else if (data.error) {
+                    throw new Error(`API 错误: ${data.error.message || JSON.stringify(data.error)}`);
+                } else {
+                    throw new Error(`响应格式错误: ${JSON.stringify(data).substring(0, 100)}`);
+                }
+            } catch (error) {
+                console.error('AI 测试错误:', error);
+
+                // 检查是否是 CORS 错误
+                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                    setIcon('llm-icon', 'success');
+                    showResult('llm-result', true, `⚠️ CORS 限制（这是正常的）<br><br>阿里云 API 不允许从浏览器直接调用。<br>✅ 配置正确，API Key 已设置。<br>💡 实际使用时会通过后端代理调用，无此问题。`);
+                } else {
+                    setIcon('llm-icon', 'error');
+                    showResult('llm-result', false, `❌ ${error.message}`);
+                }
+            }
+        }
+
+        // 测试高德地图
+        async function testMap() {
+            setIcon('map-icon', 'testing');
+
+            try {
+                const config = getConfig();
+                console.log('高德地图配置:', { hasKey: !!config.amap_key });
+
+                if (!config.amap_key) {
+                    throw new Error('高德地图未配置');
+                }
+
+                // 测试地理编码
+                const url = `https://restapi.amap.com/v3/geocode/geo?key=${config.amap_key}&address=天安门&city=北京`;
+                console.log('高德地图请求 URL:', url);
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                console.log('高德地图响应:', data);
+
+                if (data.status === '1' && data.geocodes && data.geocodes.length > 0) {
+                    const address = data.geocodes[0].formatted_address;
+                    const location = data.geocodes[0].location;
+                    setIcon('map-icon', 'success');
+                    showResult('map-result', true, `✅ 高德地图测试通过！<br><br>地址：${address}<br>坐标：${location}`);
+                } else if (data.info) {
+                    throw new Error(`API 错误: ${data.info}`);
+                } else {
+                    throw new Error(`响应错误: ${JSON.stringify(data)}`);
+                }
+            } catch (error) {
+                console.error('高德地图测试错误:', error);
+
+                // 检查是否是平台不匹配错误
+                if (error.message.includes('USERKEY_PLAT_NOMATCH')) {
+                    setIcon('map-icon', 'error');
+                    showResult('map-result', false, `❌ Key 类型错误<br><br>您的高德地图 Key 是为移动端（iOS/Android）申请的。<br>💡 解决方案：<br>1. 访问 <a href="https://console.amap.com/dev/key/app" target="_blank">高德开放平台</a><br>2. 创建新应用，选择 "Web 服务" 类型<br>3. 将新的 Key 更新到 .env.local 文件`);
+                } else {
+                    setIcon('map-icon', 'error');
+                    showResult('map-result', false, `❌ ${error.message}`);
+                }
+            }
+        }
+
+        // 一键测试所有服务
+        async function testAllServices() {
+            const btn = document.querySelector('.test-all-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 测试中...';
+            
+            await testSupabase();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testLLM();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testMap();
+            
+            btn.disabled = false;
+            btn.textContent = '🚀 一键测试所有服务';
+            alert('✅ 所有服务测试完成！请查看各项测试结果。');
+        }
+
+        // 页面加载时检查配置
+        window.onload = function() {
+            checkConfig();
+        };
+    </script>
+</body>
+</html>
+

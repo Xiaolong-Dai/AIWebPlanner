@@ -1,0 +1,58 @@
+/* PlanCreate 页面样式 */
+
+/* 布局优化 - 确保左右两列高度协调 */
+.plan-create-layout {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* 地图卡片优化 */
+.plan-create-map-card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.plan-create-map-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.plan-create-map {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 响应式布局优化 */
+@media (max-width: 992px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .page-header > div {
+    width: 100%;
+  }
+
+  .page-header button[type="button"] {
+    width: 100%;
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 18px !important;
+  }
+
+  .page-description {
+    font-size: 12px !important;
+  }
+
+  /* 移动端地图高度调整 */
+  .plan-create-map {
+    height: 300px !important;
+  }
+
+  .page-header {
+    margin-bottom: 12px !important;
+  }
+}
