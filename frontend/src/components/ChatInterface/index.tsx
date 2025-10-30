@@ -330,7 +330,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `✅ 行程生成成功！\n\n我为您生成了${info.destination}的${info.days}天行程计划（${formatDate(startDate)}出发）。\n\n${result.suggestions}\n\n详细行程已显示在右侧，您可以查看每日的具体安排。`,
+        content: `✅ 行程生成成功！\n\n我为您生成了${info.destination}的${info.days}天行程计划（${formatDate(info.startDate!)}出发）。\n\n${result.suggestions}\n\n详细行程已显示在右侧，您可以查看每日的具体安排。`,
         timestamp: new Date(),
       };
 
