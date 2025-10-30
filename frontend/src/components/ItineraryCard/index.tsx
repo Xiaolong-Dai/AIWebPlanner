@@ -89,6 +89,56 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ dayItinerary, dayNumber, 
     const color = activityColors[activity.type] || 'default';
     const label = activityLabels[activity.type] || '其他';
 
+    // 交通活动特殊渲染
+    if (activity.type === 'transport') {
+      return (
+        <div className="transport-activity">
+          <div className="transport-header">
+            <Space>
+              <CarOutlined style={{ color: '#52c41a', fontSize: 16 }} />
+              <Text strong style={{ color: '#52c41a' }}>
+                {(activity as any).method || '交通'}
+              </Text>
+            </Space>
+            {activity.cost !== undefined && activity.cost !== null && (
+              <Text type="danger" strong>
+                {activity.cost === 0 ? '免费' : `¥${activity.cost}`}
+              </Text>
+            )}
+          </div>
+          <div className="transport-details">
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              {(activity as any).from && (activity as any).to && (
+                <Text type="secondary">
+                  <EnvironmentOutlined /> {(activity as any).from} → {(activity as any).to}
+                </Text>
+              )}
+              {(activity as any).details && (
+                <Text type="secondary">
+                  📋 {(activity as any).details}
+                </Text>
+              )}
+              {activity.start_time && activity.end_time && (
+                <Text type="secondary">
+                  <ClockCircleOutlined /> {activity.start_time} - {activity.end_time}
+                </Text>
+              )}
+              {activity.duration && (
+                <Text type="secondary">
+                  <FieldTimeOutlined /> 预计时长: {activity.duration}
+                </Text>
+              )}
+              {activity.description && (
+                <Text type="secondary" style={{ fontStyle: 'italic' }}>
+                  💡 {activity.description}
+                </Text>
+              )}
+            </Space>
+          </div>
+        </div>
+      );
+    }
+
     // 获取位置信息 - 优先使用 address,其次使用 location 字符串
     const getLocationText = () => {
       if (activity.address && typeof activity.address === 'string') {

@@ -250,6 +250,37 @@ export const generateTravelPlan = async (params: {
 - 付费景点必须提供真实的门票价格
 - 不要使用字符串 "免费"，必须使用数字 0
 
+🚗 重要交通规划要求（新增）：
+- 每两个相邻活动（景点、餐厅、购物等）之间必须插入一个交通活动（type: "transport"）
+- 交通方式选择规则：
+  * 步行距离 < 1km：使用"步行"
+  * 1km ≤ 距离 < 3km：使用"地铁"或"公交"
+  * 距离 ≥ 3km：使用"地铁"、"公交"或"出租车"
+- 交通活动必须包含以下字段：
+  * id: 唯一标识（如"trans1"）
+  * type: "transport"（固定值）
+  * name: 交通描述（如"前往景山公园"）
+  * from: 出发地点名称
+  * to: 目的地点名称
+  * method: 交通方式（步行、地铁、公交、出租车、网约车）
+  * details: 具体路线（如"地铁1号线，天安门东站→王府井站，2站"或"从故宫北门出，步行约5分钟"）
+  * start_time: 出发时间（与上一个活动的end_time一致）
+  * end_time: 到达时间
+  * duration: 预计时间（如"15分钟"）
+  * cost: 预计费用（数字类型，步行为0，地铁2-5元，公交1-2元，出租车起步价13元）
+  * description: 交通说明（如"步行前往景山公园"或"乘坐地铁8号线前往王府井"）
+- 交通时间要合理，考虑等车、换乘时间：
+  * 步行：按5km/h计算
+  * 地铁：包含等车5分钟 + 乘车时间 + 换乘时间
+  * 公交：包含等车10分钟 + 乘车时间
+  * 出租车：按实际路况估算
+- 交通费用要真实：
+  * 步行：0元
+  * 地铁：2-5元（根据距离）
+  * 公交：1-2元
+  * 出租车：起步价13元 + 里程费
+  * 网约车：比出租车略贵10-20%
+
 🎯 用户指定景点要求：
 ${specificAttractions.length > 0 ? `- 用户明确要求访问以下景点：${specificAttractions.join('、')}
 - 请务必将这些景点纳入行程安排中，作为核心景点
@@ -291,32 +322,74 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
         {
           "id": "act1",
           "type": "attraction",
-          "name": "付费景点名称",
-          "address": "详细地址",
+          "name": "故宫博物院",
+          "address": "北京市东城区景山前街4号",
           "coordinates": [116.397428, 39.90923],
           "start_time": "09:00",
-          "end_time": "11:00",
-          "duration": "2小时",
-          "ticket_price": 50,
-          "cost": 50,
-          "description": "景点介绍",
-          "opening_hours": "08:00-18:00",
-          "tips": "游玩建议"
+          "end_time": "12:00",
+          "duration": "3小时",
+          "ticket_price": 60,
+          "cost": 60,
+          "description": "中国明清两代的皇家宫殿",
+          "opening_hours": "08:30-17:00",
+          "tips": "建议提前网上购票"
+        },
+        {
+          "id": "trans1",
+          "type": "transport",
+          "name": "前往景山公园",
+          "from": "故宫博物院",
+          "to": "景山公园",
+          "method": "步行",
+          "details": "从故宫北门出，步行约5分钟",
+          "start_time": "12:00",
+          "end_time": "12:05",
+          "duration": "5分钟",
+          "cost": 0,
+          "description": "步行前往景山公园"
         },
         {
           "id": "act2",
           "type": "attraction",
-          "name": "免费景点名称（如天安门广场、公园等）",
-          "address": "详细地址",
-          "coordinates": [116.397428, 39.90923],
-          "start_time": "14:00",
-          "end_time": "16:00",
-          "duration": "2小时",
-          "ticket_price": 0,
-          "cost": 0,
-          "description": "免费景点介绍",
-          "opening_hours": "全天开放",
-          "tips": "免费参观"
+          "name": "景山公园",
+          "address": "北京市西城区景山西街44号",
+          "coordinates": [116.395, 39.928],
+          "start_time": "12:05",
+          "end_time": "13:00",
+          "duration": "55分钟",
+          "ticket_price": 2,
+          "cost": 2,
+          "description": "登高俯瞰故宫全景",
+          "opening_hours": "06:30-21:00",
+          "tips": "登万春亭可俯瞰故宫"
+        },
+        {
+          "id": "trans2",
+          "type": "transport",
+          "name": "前往午餐地点",
+          "from": "景山公园",
+          "to": "全聚德烤鸭店（王府井店）",
+          "method": "地铁",
+          "details": "地铁8号线，南锣鼓巷站→王府井站，2站",
+          "start_time": "13:00",
+          "end_time": "13:15",
+          "duration": "15分钟",
+          "cost": 3,
+          "description": "乘坐地铁8号线前往王府井"
+        },
+        {
+          "id": "meal1",
+          "type": "restaurant",
+          "name": "全聚德烤鸭店（王府井店）",
+          "address": "北京市东城区王府井大街198号",
+          "coordinates": [116.410, 39.915],
+          "start_time": "13:15",
+          "end_time": "14:30",
+          "duration": "1小时15分钟",
+          "cost": 150,
+          "description": "品尝正宗北京烤鸭",
+          "cuisine": "北京菜",
+          "price_per_person": 150
         }
       ],
       "accommodation": {
@@ -355,10 +428,13 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
 }
 
 ⚠️ 再次强调：
-1. activities 数组中的每个元素都必须包含 coordinates: [经度, 纬度]
+1. activities 数组中的每个元素都必须包含 coordinates: [经度, 纬度]（transport 类型除外）
 2. 景点(type: "attraction")、餐厅(type: "restaurant")、购物(type: "shopping")都必须有 coordinates
-3. 坐标格式: [经度, 纬度]，例如东京塔: [139.745438, 35.658581]
-4. 请使用真实的地理坐标，可以参考知名地标的实际位置`;
+3. 交通(type: "transport")必须包含 from、to、method、details、duration、cost 字段
+4. 每两个非交通活动之间必须插入一个交通活动
+5. 坐标格式: [经度, 纬度]，例如东京塔: [139.745438, 35.658581]
+6. 请使用真实的地理坐标，可以参考知名地标的实际位置
+7. 交通费用必须是数字类型，步行为0，地铁2-5元，公交1-2元，出租车起步价13元`;
 
   try {
     const response = await callLLM(userPrompt, systemPrompt);
