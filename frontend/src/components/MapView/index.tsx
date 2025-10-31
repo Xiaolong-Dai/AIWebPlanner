@@ -79,12 +79,18 @@ const MapView: React.FC<MapViewProps> = ({
       return;
     }
 
-    // 动态加载高德地图 JS API
+    // 动态加载高德地图 JS API (包含必要的插件)
     const script = document.createElement('script');
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${config.amap_key}`;
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${config.amap_key}&plugin=AMap.Geocoder,AMap.Driving,AMap.Walking`;
     script.async = true;
     script.onload = () => {
-      initMap();
+      // 等待 AMap 完全初始化
+      if (window.AMap) {
+        initMap();
+      } else {
+        setError('高德地图 API 加载异常');
+        setLoading(false);
+      }
     };
     script.onerror = () => {
       setError('加载高德地图失败');
@@ -137,6 +143,12 @@ const MapView: React.FC<MapViewProps> = ({
   // 当行程数据或路线模式变化时，更新地图标记和路线
   useEffect(() => {
     if (!mapRef.current || !itinerary || itinerary.length === 0) return;
+
+    // 检查高德地图 API 是否完全加载
+    if (!window.AMap || !window.AMap.Marker || !window.AMap.Polyline) {
+      console.warn('⚠️ 高德地图 API 尚未完全加载，跳过标记和路线绘制');
+      return;
+    }
 
     // 清除现有标记和路线
     mapRef.current.clearMap();
@@ -317,6 +329,12 @@ const MapView: React.FC<MapViewProps> = ({
       if (dayPoints.length > 1) {
         const colors = ['#1890ff', '#52c41a', '#faad14', '#eb2f96', '#722ed1', '#13c2c2'];
 
+        // 检查路线规划服务是否可用
+        if (!window.AMap.Driving || !window.AMap.Walking || !window.AMap.GeometryUtil) {
+          console.warn('⚠️ 路线规划服务未加载，跳过路线绘制');
+          return;
+        }
+
         // 遍历相邻点，计算真实路线
         for (let i = 0; i < dayPoints.length - 1; i++) {
           const startPoint = dayPoints[i];
@@ -344,7 +362,7 @@ const MapView: React.FC<MapViewProps> = ({
               })
             : new window.AMap.Driving({
                 map: mapRef.current,
-                policy: window.AMap.DrivingPolicy.LEAST_TIME, // 最快路线
+                policy: window.AMap.DrivingPolicy?.LEAST_TIME || 0, // 最快路线,如果未定义则使用默认值0
                 hideMarkers: true,
               });
 
