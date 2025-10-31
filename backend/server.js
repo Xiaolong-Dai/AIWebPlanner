@@ -59,7 +59,7 @@ app.post('/api/llm-proxy', async (req, res) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
-    }, 180000); // 180秒超时 (3分钟)
+    }, 300000); // 300秒超时 (5分钟)
 
     try {
       // 调用阿里云百炼API

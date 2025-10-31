@@ -111,7 +111,7 @@ const callLLM = async (prompt: string, systemPrompt?: string): Promise<string> =
 
     const response = await axios.post(apiEndpoint, requestBody, {
       headers,
-      timeout: 180000, // 180秒超时 (3分钟)
+      timeout: 300000, // 300秒超时 (5分钟)
       // 添加重试配置
       validateStatus: (status) => status < 500, // 只有5xx错误才抛出异常
     });
