@@ -131,16 +131,17 @@ const callLLM = async (prompt: string, systemPrompt?: string): Promise<string> =
     }
 
     if (content) {
-      console.log('AI响应成功，内容长度:', content.length);
+      console.log('✅ AI响应成功，内容长度:', content.length);
+      console.log('📝 AI响应内容预览:', content.substring(0, 200) + '...');
       return content;
     }
 
-    console.error('AI响应格式错误:', {
+    console.error('❌ AI响应格式错误:', {
       hasData: !!response.data,
       hasOutput: !!response.data?.output,
       hasChoices: !!response.data?.output?.choices,
       responseKeys: Object.keys(response.data || {}),
-      fullResponse: response.data
+      fullResponse: JSON.stringify(response.data).substring(0, 500)
     });
     throw new Error('AI 响应格式错误，请检查控制台日志');
   } catch (error: any) {
@@ -462,11 +463,13 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
 7. 交通费用必须是数字类型，步行为0，地铁2-5元，公交1-2元，出租车起步价13元`;
 
   try {
+    console.log('🚀 开始调用 AI 生成行程...');
     const response = await callLLM(userPrompt, systemPrompt);
 
     // 尝试解析 JSON
-    console.log('AI响应长度:', response.length);
-    console.log('用户指定的景点:', specificAttractions);
+    console.log('✅ AI响应成功，长度:', response.length);
+    console.log('📍 用户指定的景点:', specificAttractions);
+    console.log('📄 AI响应前300字符:', response.substring(0, 300));
 
     // 移除可能的 markdown 代码块标记
     let jsonStr = response.trim();
@@ -668,9 +671,14 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
         }
       }
     }
-  } catch (error) {
-    console.error('解析 AI 响应失败:', error);
-    throw new Error('AI 生成的行程格式错误，请重试');
+  } catch (error: any) {
+    console.error('❌ 解析 AI 响应失败:', error);
+    console.error('错误详情:', {
+      message: error.message,
+      stack: error.stack,
+      jsonStrPreview: jsonStr?.substring(0, 500)
+    });
+    throw new Error(`AI 生成的行程格式错误: ${error.message}。请重试或简化需求。`);
   }
 };
 
