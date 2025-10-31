@@ -3,6 +3,7 @@ import { Spin, Button, Space } from 'antd';
 import { CarOutlined, ManOutlined } from '@ant-design/icons';
 import { useApiConfigStore } from '../../store/apiConfigStore';
 import type { DayItinerary } from '../../types/common';
+import { findTransportCoordinates } from '../../utils/transportationCoordinates';
 import './index.css';
 
 export interface MapViewProps {
@@ -321,6 +322,141 @@ const MapView: React.FC<MapViewProps> = ({
 
             markers.push(marker);
             markersRef.current.push(marker);
+          }
+        });
+      }
+
+      // 添加交通枢纽标记(机场、火车站)
+      if (day.transportation && day.transportation.length > 0) {
+        day.transportation.forEach((transport) => {
+          // 处理出发地
+          if (transport.from) {
+            let fromCoords = transport.from_coordinates;
+
+            // 如果没有坐标,尝试从预设映射表中查找
+            if (!fromCoords || !Array.isArray(fromCoords) || fromCoords.length !== 2) {
+              fromCoords = findTransportCoordinates(transport.from);
+            }
+
+            if (fromCoords) {
+              const [lng, lat] = fromCoords;
+              points.push([lng, lat]);
+              dayPoints.push([lng, lat]);
+
+              const icon = transport.type === 'flight' ? '✈️' : '🚄';
+              const color = transport.type === 'flight' ? '#1890ff' : '#52c41a';
+
+              const markerContent = document.createElement('div');
+              markerContent.style.cssText = `
+                background: ${color};
+                color: white;
+                padding: 6px 12px;
+                border-radius: 16px;
+                font-size: 14px;
+                font-weight: bold;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                border: 2px solid white;
+              `;
+              markerContent.innerHTML = `${icon} ${transport.from}`;
+
+              const marker = new window.AMap.Marker({
+                position: [lng, lat],
+                content: markerContent,
+                title: transport.from,
+                offset: new window.AMap.Pixel(-30, -15),
+                zIndex: 200, // 提高层级,确保显示在最上层
+              });
+
+              marker.on('click', () => {
+                const infoWindow = new window.AMap.InfoWindow({
+                  content: `
+                    <div style="padding: 12px; min-width: 250px;">
+                      <h4 style="margin: 0 0 8px 0; color: ${color};">${icon} ${transport.from}</h4>
+                      <p style="margin: 4px 0; color: #666; font-size: 12px;">🎯 目的地: ${transport.to}</p>
+                      ${transport.departure_time ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">🕐 出发: ${transport.departure_time}</p>` : ''}
+                      ${transport.arrival_time ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">🕐 到达: ${transport.arrival_time}</p>` : ''}
+                      ${transport.duration ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">⏱️ 时长: ${transport.duration}</p>` : ''}
+                      ${transport.flight_number ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">✈️ 航班: ${transport.flight_number}</p>` : ''}
+                      ${transport.train_number ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">🚄 车次: ${transport.train_number}</p>` : ''}
+                      ${transport.price ? `<p style="margin: 4px 0; color: #ff4d4f; font-size: 12px;">💰 ¥${transport.price}</p>` : ''}
+                      ${transport.notes ? `<p style="margin: 4px 0; color: #faad14; font-size: 11px;">💡 ${transport.notes}</p>` : ''}
+                    </div>
+                  `,
+                });
+                infoWindow.open(mapRef.current, [lng, lat]);
+              });
+
+              markers.push(marker);
+              markersRef.current.push(marker);
+              console.log(`✅ 添加交通枢纽标记: ${transport.from} at [${lng}, ${lat}]`);
+            } else {
+              console.warn(`⚠️ 无法获取交通枢纽坐标: ${transport.from}`);
+            }
+          }
+
+          // 处理目的地
+          if (transport.to) {
+            let toCoords = transport.to_coordinates;
+
+            // 如果没有坐标,尝试从预设映射表中查找
+            if (!toCoords || !Array.isArray(toCoords) || toCoords.length !== 2) {
+              toCoords = findTransportCoordinates(transport.to);
+            }
+
+            if (toCoords) {
+              const [lng, lat] = toCoords;
+              points.push([lng, lat]);
+              dayPoints.push([lng, lat]);
+
+              const icon = transport.type === 'flight' ? '✈️' : '🚄';
+              const color = transport.type === 'flight' ? '#1890ff' : '#52c41a';
+
+              const markerContent = document.createElement('div');
+              markerContent.style.cssText = `
+                background: ${color};
+                color: white;
+                padding: 6px 12px;
+                border-radius: 16px;
+                font-size: 14px;
+                font-weight: bold;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                border: 2px solid white;
+              `;
+              markerContent.innerHTML = `${icon} ${transport.to}`;
+
+              const marker = new window.AMap.Marker({
+                position: [lng, lat],
+                content: markerContent,
+                title: transport.to,
+                offset: new window.AMap.Pixel(-30, -15),
+                zIndex: 200,
+              });
+
+              marker.on('click', () => {
+                const infoWindow = new window.AMap.InfoWindow({
+                  content: `
+                    <div style="padding: 12px; min-width: 250px;">
+                      <h4 style="margin: 0 0 8px 0; color: ${color};">${icon} ${transport.to}</h4>
+                      <p style="margin: 4px 0; color: #666; font-size: 12px;">🎯 出发地: ${transport.from}</p>
+                      ${transport.departure_time ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">🕐 出发: ${transport.departure_time}</p>` : ''}
+                      ${transport.arrival_time ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">🕐 到达: ${transport.arrival_time}</p>` : ''}
+                      ${transport.duration ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">⏱️ 时长: ${transport.duration}</p>` : ''}
+                      ${transport.flight_number ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">✈️ 航班: ${transport.flight_number}</p>` : ''}
+                      ${transport.train_number ? `<p style="margin: 4px 0; color: #666; font-size: 12px;">🚄 车次: ${transport.train_number}</p>` : ''}
+                      ${transport.price ? `<p style="margin: 4px 0; color: #ff4d4f; font-size: 12px;">💰 ¥${transport.price}</p>` : ''}
+                      ${transport.notes ? `<p style="margin: 4px 0; color: #faad14; font-size: 11px;">💡 ${transport.notes}</p>` : ''}
+                    </div>
+                  `,
+                });
+                infoWindow.open(mapRef.current, [lng, lat]);
+              });
+
+              markers.push(marker);
+              markersRef.current.push(marker);
+              console.log(`✅ 添加交通枢纽标记: ${transport.to} at [${lng}, ${lat}]`);
+            } else {
+              console.warn(`⚠️ 无法获取交通枢纽坐标: ${transport.to}`);
+            }
           }
         });
       }
