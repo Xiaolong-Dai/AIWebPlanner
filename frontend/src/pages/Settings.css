@@ -49,3 +49,122 @@
   text-decoration: underline;
 }
 
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 12px !important;
+  }
+
+  .settings-content {
+    max-width: 100%;
+  }
+
+  .settings-header {
+    margin-bottom: 16px;
+  }
+
+  .settings-header h1 {
+    font-size: 20px !important;
+    margin-bottom: 8px;
+  }
+
+  .settings-header p {
+    font-size: 13px;
+  }
+
+  /* 表单项移动端优化 */
+  .ant-form-item-label > label {
+    font-size: 14px !important;
+    height: auto !important;
+  }
+
+  .ant-form-item-control {
+    max-width: 100% !important;
+  }
+
+  /* 输入框移动端优化 */
+  .ant-input,
+  .ant-input-password {
+    height: 44px !important;
+    font-size: 15px !important;
+  }
+
+  /* 按钮组移动端优化 */
+  .ant-form-item-control-input-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ant-form-item-control-input-content .ant-btn {
+    width: 100%;
+    height: 44px;
+    font-size: 15px;
+  }
+
+  /* 帮助文档移动端优化 */
+  .settings-help {
+    padding: 16px !important;
+  }
+
+  .settings-help h3 {
+    font-size: 15px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+  }
+
+  .settings-help p,
+  .settings-help li {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .settings-help ul {
+    padding-left: 16px;
+  }
+
+  .settings-help li {
+    margin-bottom: 8px;
+  }
+
+  /* 折叠面板移动端优化 */
+  .ant-collapse {
+    border-radius: 8px;
+  }
+
+  .ant-collapse-header {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+
+  .ant-collapse-content-box {
+    padding: 12px 16px !important;
+  }
+
+  /* 卡片移动端优化 */
+  .ant-card-head {
+    padding: 12px 16px !important;
+  }
+
+  .ant-card-head-title {
+    font-size: 15px !important;
+  }
+
+  .ant-card-body {
+    padding: 16px !important;
+  }
+
+  /* Alert 移动端优化 */
+  .ant-alert {
+    padding: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .ant-alert-message {
+    font-size: 14px !important;
+  }
+
+  .ant-alert-description {
+    font-size: 13px !important;
+  }
+}

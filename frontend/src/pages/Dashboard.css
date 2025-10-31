@@ -53,13 +53,111 @@
 
 /* 响应式布局 */
 @media (max-width: 768px) {
+  .dashboard-container {
+    padding: 0 !important;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px !important;
+    margin-bottom: 0;
+  }
+
+  .dashboard-header .ant-btn {
+    width: 100%;
+    height: 44px;
+    font-size: 15px;
+  }
+
+  /* 统计卡片移动端优化 */
+  .ant-statistic-title {
+    font-size: 12px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ant-statistic-content {
+    font-size: 18px !important;
+  }
+
+  /* 计划列表移动端优化 */
+  .plan-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .plan-card {
+    margin-bottom: 0;
+  }
+
+  .plan-card h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .plan-card p {
+    font-size: 13px;
+    margin: 6px 0;
+  }
+
+  /* 列表项移动端优化 */
+  .plan-list-item {
+    padding: 12px 0 !important;
+  }
+
+  .plan-list-item .ant-list-item-meta {
+    margin-bottom: 8px;
+  }
+
+  .plan-list-item .ant-list-item-meta-title {
+    font-size: 15px !important;
+    margin-bottom: 6px !important;
+  }
+
   .plan-list-item .ant-list-item-meta-description {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .plan-list-item .ant-list-item-meta-description .ant-space {
+    flex-wrap: wrap;
   }
 
   .plan-list-item .ant-list-item-meta-description .ant-space-item {
     display: block;
+    margin-right: 0 !important;
+  }
+
+  .plan-list-item .ant-list-item-action {
+    margin-left: 0 !important;
+    margin-top: 8px;
+  }
+
+  .plan-list-item .ant-list-item-action > li {
+    padding: 0 8px;
+  }
+
+  /* 空状态优化 */
+  .ant-empty {
+    padding: 40px 20px;
+  }
+
+  .ant-empty-description {
+    font-size: 14px;
+  }
+
+  /* 设置按钮移动端优化 */
+  .dashboard-header .ant-btn-icon-only {
+    width: 44px;
+    height: 44px;
   }
 }

@@ -181,23 +181,182 @@
 
 /* 响应式优化 */
 @media (max-width: 768px) {
+  .itinerary-card {
+    margin-bottom: 12px;
+  }
+
   .itinerary-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
   }
 
+  .itinerary-header h4 {
+    font-size: 15px;
+  }
+
+  .itinerary-summary {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* Timeline 移动端优化 */
+  .itinerary-timeline {
+    margin-top: 12px;
+  }
+
+  .itinerary-timeline .ant-timeline-item {
+    padding-bottom: 16px;
+  }
+
+  .itinerary-timeline .ant-timeline-item-content {
+    margin-left: 20px;
+  }
+
+  /* 活动项移动端优化 */
   .activity-item {
-    padding: 12px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .activity-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .activity-header .ant-tag {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+
+  .activity-location {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .activity-description {
+    font-size: 13px;
+    margin: 8px 0;
+    line-height: 1.6;
   }
 
   .activity-meta {
     margin-right: 12px;
     font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .activity-tips {
+    margin-top: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* 住宿和餐饮信息移动端优化 */
+  .accommodation-info,
+  .meals-info {
+    padding: 10px;
+    margin-top: 12px;
+  }
+
+  .accommodation-info h5,
+  .meals-info h5 {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .meal-item {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+
+  .meal-item .ant-tag {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+
+  .meal-item p {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  /* 交通活动移动端优化 */
+  .transport-activity {
+    padding: 10px 12px;
+    margin: 6px 0;
+  }
+
+  .transport-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .transport-details {
+    padding-left: 16px;
+    margin-top: 6px;
+  }
+
+  .transport-details .ant-typography {
+    font-size: 12px;
+  }
+
+  .transport-activity .ant-space {
+    flex-wrap: wrap;
+  }
+
+  /* 备注信息移动端优化 */
+  .itinerary-notes {
+    margin-top: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  /* Space 组件移动端优化 */
+  .ant-space {
+    gap: 6px !important;
+  }
+
+  /* Divider 移动端优化 */
+  .ant-divider {
+    margin: 12px 0 !important;
+  }
+
+  /* 折叠按钮移动端优化 */
+  .ant-btn-text {
+    height: 36px !important;
+    font-size: 13px !important;
+    padding: 0 12px !important;
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 375px) {
+  .activity-item {
+    padding: 8px;
+  }
+
+  .activity-description {
+    font-size: 12px;
+  }
+
+  .activity-meta {
+    font-size: 11px;
+    margin-right: 8px;
   }
 
   .accommodation-info,
   .meals-info {
-    padding: 12px;
+    padding: 8px;
+  }
+
+  .meal-item {
+    padding: 8px 10px;
+  }
+
+  .transport-activity {
+    padding: 8px 10px;
   }
 }

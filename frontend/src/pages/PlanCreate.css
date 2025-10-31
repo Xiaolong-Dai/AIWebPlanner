@@ -44,15 +44,97 @@
   }
 
   .page-description {
-    font-size: 12px !important;
+    font-size: 13px !important;
+    margin-top: 4px;
   }
 
   /* 移动端地图高度调整 */
   .plan-create-map {
-    height: 300px !important;
+    height: 280px !important;
+    border-radius: 8px;
   }
 
   .page-header {
     margin-bottom: 12px !important;
+    padding: 0 !important;
+  }
+
+  /* 移动端按钮组优化 */
+  .page-header .ant-space {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px !important;
+  }
+
+  .page-header .ant-btn {
+    width: 100%;
+    height: 44px;
+    font-size: 15px;
+    justify-content: center;
+  }
+
+  /* 移动端卡片优化 */
+  .plan-create-map-card {
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  .plan-create-map-card .ant-card-body {
+    padding: 12px !important;
+  }
+
+  /* 移动端行程卡片优化 */
+  .ant-timeline {
+    padding-left: 8px;
+  }
+
+  .ant-timeline-item {
+    padding-bottom: 16px;
+  }
+
+  /* 移动端 Row 间距优化 */
+  .ant-row {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+  }
+
+  .ant-col {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    margin-bottom: 12px;
+  }
+
+  /* 聊天界面移动端优化 */
+  .chat-interface {
+    height: auto !important;
+    min-height: 400px;
+  }
+
+  .chat-messages {
+    max-height: 300px !important;
+  }
+
+  .chat-input-area {
+    padding: 12px !important;
+  }
+
+  .chat-input-area .ant-input {
+    font-size: 15px !important;
+  }
+
+  /* 保存对话框移动端优化 */
+  .ant-modal-body .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .ant-modal-footer {
+    display: flex;
+    gap: 8px;
+  }
+
+  .ant-modal-footer .ant-btn {
+    flex: 1;
+    height: 44px;
   }
 }

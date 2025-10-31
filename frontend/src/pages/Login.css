@@ -52,3 +52,125 @@
   text-decoration: underline;
 }
 
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 16px;
+    align-items: flex-start;
+    padding-top: 40px;
+  }
+
+  .login-content {
+    max-width: 100%;
+  }
+
+  .login-header {
+    margin-bottom: 24px;
+  }
+
+  .login-header h1 {
+    font-size: 28px !important;
+    margin-bottom: 6px;
+  }
+
+  .login-header p {
+    font-size: 14px;
+  }
+
+  .login-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .login-card .ant-card-body {
+    padding: 24px 20px !important;
+  }
+
+  /* 表单项移动端优化 */
+  .ant-form-item {
+    margin-bottom: 20px;
+  }
+
+  .ant-form-item-label > label {
+    font-size: 14px !important;
+  }
+
+  /* 输入框移动端优化 */
+  .ant-input,
+  .ant-input-password {
+    height: 46px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+  }
+
+  .ant-input-password .ant-input {
+    height: 44px !important;
+  }
+
+  /* 按钮移动端优化 */
+  .ant-btn {
+    height: 46px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+  }
+
+  .ant-btn-primary {
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+  }
+
+  /* 底部链接移动端优化 */
+  .login-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    font-size: 14px;
+  }
+
+  /* Tabs 移动端优化 */
+  .ant-tabs-nav {
+    margin-bottom: 20px !important;
+  }
+
+  .ant-tabs-tab {
+    padding: 10px 0 !important;
+    font-size: 15px !important;
+  }
+
+  /* 记住我 checkbox 移动端优化 */
+  .ant-checkbox-wrapper {
+    font-size: 14px;
+  }
+
+  .ant-checkbox-inner {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* 忘记密码链接移动端优化 */
+  .ant-form-item-control-input-content a {
+    font-size: 14px;
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 375px) {
+  .login-container {
+    padding: 12px;
+    padding-top: 30px;
+  }
+
+  .login-header h1 {
+    font-size: 24px !important;
+  }
+
+  .login-card .ant-card-body {
+    padding: 20px 16px !important;
+  }
+
+  .ant-input,
+  .ant-input-password,
+  .ant-btn {
+    height: 44px !important;
+    font-size: 14px !important;
+  }
+}
