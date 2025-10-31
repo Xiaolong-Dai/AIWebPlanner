@@ -74,6 +74,14 @@ const MapView: React.FC<MapViewProps> = ({
       return;
     }
 
+    // 设置安全密钥(如果有)
+    if (config.amap_secret) {
+      window._AMapSecurityConfig = {
+        securityJsCode: config.amap_secret,
+      };
+      console.log('✅ 高德地图安全密钥已设置');
+    }
+
     // 检查是否已加载
     if (window.AMap) {
       initMap();
@@ -116,12 +124,18 @@ const MapView: React.FC<MapViewProps> = ({
         zoom,
         center: mapCenter,
         viewMode: '2D', // 改为 2D 平面视图，更直观
+        mapStyle: 'amap://styles/normal', // 使用标准地图样式
+        features: ['bg', 'road', 'building', 'point'], // 显示背景、道路、建筑物、POI
+        resizeEnable: true, // 允许地图自适应容器大小
       });
 
       mapRef.current = map;
       setLoading(false);
       setError(null);
+
+      console.log('✅ 地图初始化成功');
     } catch (err: any) {
+      console.error('❌ 地图初始化失败:', err);
       setError(`初始化地图失败: ${err.message}`);
       setLoading(false);
     }
