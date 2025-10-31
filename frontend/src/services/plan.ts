@@ -215,7 +215,8 @@ export const duplicatePlan = async (id: string): Promise<TravelPlan> => {
     throw new Error('原计划不存在');
   }
 
-  const { id: _, user_id: __, created_at: ___, updated_at: ____, ...planData } = originalPlan;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id: _id, user_id: _user_id, created_at: _created_at, updated_at: _updated_at, ...planData } = originalPlan;
 
   return createPlan({
     ...planData,

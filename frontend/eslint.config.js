@@ -19,5 +19,16 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // 允许在与第三方库交互时使用 any 类型
+      '@typescript-eslint/no-explicit-any': 'warn',
+      // 允许未使用的变量以下划线开头
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
+      // React Hooks 依赖检查改为警告
+      'react-hooks/exhaustive-deps': 'warn',
+    },
   },
 ])

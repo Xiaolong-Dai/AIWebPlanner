@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout, Card, Button, Row, Col, Statistic, Empty, Spin, message, List, Tag, Space } from 'antd';
+import { Layout, Card, Button, Row, Col, Statistic, Spin, message, List, Tag, Space } from 'antd';
 import {
   PlusOutlined,
   CalendarOutlined,

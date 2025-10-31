@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Spin } from 'antd';
+import { Spin, Button, Space } from 'antd';
+import { CarOutlined, ManOutlined } from '@ant-design/icons';
 import { useApiConfigStore } from '../../store/apiConfigStore';
 import type { DayItinerary } from '../../types/common';
 import './index.css';
@@ -21,6 +22,9 @@ declare global {
   }
 }
 
+// 路线模式类型
+type RouteMode = 'driving' | 'walking';
+
 const MapView: React.FC<MapViewProps> = ({
   itinerary,
   center = [116.397428, 39.90923], // 默认北京天安门
@@ -32,9 +36,11 @@ const MapView: React.FC<MapViewProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]); // 保存标记点引用
+  const polylinesRef = useRef<any[]>([]); // 保存路线引用
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>(center);
+  const [routeMode, setRouteMode] = useState<RouteMode>('driving'); // 路线模式
   const { config } = useApiConfigStore();
 
   // 根据目的地获取地图中心点
@@ -128,17 +134,17 @@ const MapView: React.FC<MapViewProps> = ({
     return styles[type] || styles.other;
   };
 
-  // 当行程数据变化时，更新地图标记
+  // 当行程数据或路线模式变化时，更新地图标记和路线
   useEffect(() => {
     if (!mapRef.current || !itinerary || itinerary.length === 0) return;
 
-    // 清除现有标记
+    // 清除现有标记和路线
     mapRef.current.clearMap();
     markersRef.current = [];
+    polylinesRef.current = [];
 
     const markers: any[] = [];
     const points: [number, number][] = [];
-    const polylines: any[] = []; // 存储每天的路线
 
     // 遍历每天的行程
     itinerary.forEach((day, dayIndex) => {
@@ -307,57 +313,163 @@ const MapView: React.FC<MapViewProps> = ({
         });
       }
 
-      // 绘制每天的路线(不同颜色)并计算距离和时间
+      // 绘制每天的路线(使用真实路线规划)
       if (dayPoints.length > 1) {
         const colors = ['#1890ff', '#52c41a', '#faad14', '#eb2f96', '#722ed1', '#13c2c2'];
-        const polyline = new window.AMap.Polyline({
-          path: dayPoints,
-          strokeColor: colors[dayIndex % colors.length],
-          strokeWeight: 3,
-          strokeOpacity: 0.6,
-          strokeStyle: 'solid',
-        });
-        polylines.push(polyline);
 
-        // 计算相邻点之间的距离和时间
+        // 遍历相邻点，计算真实路线
         for (let i = 0; i < dayPoints.length - 1; i++) {
           const startPoint = dayPoints[i];
           const endPoint = dayPoints[i + 1];
 
-          // 计算直线距离 (米)
-          const distance = window.AMap.GeometryUtil.distance(startPoint, endPoint);
-          const distanceKm = (distance / 1000).toFixed(1);
+          // 计算直线距离
+          const straightDistance = window.AMap.GeometryUtil.distance(startPoint, endPoint);
+          const distanceKm = straightDistance / 1000;
 
-          // 估算时间 (假设步行速度 5km/h)
-          const walkingTimeMinutes = Math.round((distance / 1000) / 5 * 60);
+          // 根据用户选择的路线模式和距离决定交通方式
+          let useWalking = routeMode === 'walking';
+          let transportMode = routeMode === 'walking' ? '步行' : '驾车';
 
-          // 计算中点位置
-          const midLng = (startPoint[0] + endPoint[0]) / 2;
-          const midLat = (startPoint[1] + endPoint[1]) / 2;
+          // 如果选择驾车但距离太近(<0.5km),自动切换为步行
+          if (routeMode === 'driving' && distanceKm < 0.5) {
+            useWalking = true;
+            transportMode = '步行';
+          }
 
-          // 创建距离和时间标签
-          const labelContent = document.createElement('div');
-          labelContent.style.cssText = `
-            background: rgba(255, 255, 255, 0.95);
-            color: ${colors[dayIndex % colors.length]};
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            white-space: nowrap;
-            border: 1px solid ${colors[dayIndex % colors.length]};
-          `;
-          labelContent.innerHTML = `${distanceKm}km / ${walkingTimeMinutes}分钟`;
+          // 创建路线规划服务
+          const routeService = useWalking
+            ? new window.AMap.Walking({
+                map: mapRef.current,
+                hideMarkers: true,
+              })
+            : new window.AMap.Driving({
+                map: mapRef.current,
+                policy: window.AMap.DrivingPolicy.LEAST_TIME, // 最快路线
+                hideMarkers: true,
+              });
 
-          const labelMarker = new window.AMap.Marker({
-            position: [midLng, midLat],
-            content: labelContent,
-            offset: new window.AMap.Pixel(-30, -10),
-            zIndex: 200,
+          // 搜索路线
+          routeService.search(startPoint, endPoint, (status: string, result: any) => {
+            if (status === 'complete' && result.routes && result.routes.length > 0) {
+              const route = result.routes[0];
+              const distance = (route.distance / 1000).toFixed(1); // 公里
+              const duration = Math.round(route.time / 60); // 分钟
+
+              // 绘制路线
+              const path = route.steps.flatMap((step: any) => step.path);
+              const polyline = new window.AMap.Polyline({
+                path: path,
+                strokeColor: colors[dayIndex % colors.length],
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                strokeStyle: 'solid',
+                showDir: true, // 显示方向箭头
+              });
+              mapRef.current.add(polyline);
+              polylinesRef.current.push(polyline); // 保存路线引用
+
+              // 计算路线中点位置
+              const midIndex = Math.floor(path.length / 2);
+              const midPoint = path[midIndex];
+
+              // 创建距离和时间标签
+              const labelContent = document.createElement('div');
+              labelContent.style.cssText = `
+                background: rgba(255, 255, 255, 0.95);
+                color: ${colors[dayIndex % colors.length]};
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: bold;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                white-space: nowrap;
+                border: 2px solid ${colors[dayIndex % colors.length]};
+                cursor: pointer;
+              `;
+              labelContent.innerHTML = `${transportMode} ${distance}km / ${duration}分钟`;
+
+              const labelMarker = new window.AMap.Marker({
+                position: midPoint,
+                content: labelContent,
+                offset: new window.AMap.Pixel(-40, -15),
+                zIndex: 200,
+              });
+
+              // 添加点击事件显示详细路线
+              labelMarker.on('click', () => {
+                const steps = route.steps.map((step: any, idx: number) =>
+                  `${idx + 1}. ${step.instruction}`
+                ).join('<br>');
+
+                const infoWindow = new window.AMap.InfoWindow({
+                  content: `
+                    <div style="padding: 12px; max-width: 300px;">
+                      <h4 style="margin: 0 0 8px 0; color: ${colors[dayIndex % colors.length]};">
+                        ${transportMode}路线详情
+                      </h4>
+                      <p style="margin: 4px 0; font-weight: bold;">
+                        📏 距离: ${distance} 公里
+                      </p>
+                      <p style="margin: 4px 0; font-weight: bold;">
+                        ⏱️ 时间: ${duration} 分钟
+                      </p>
+                      <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">
+                        <p style="margin: 0 0 8px 0; font-weight: bold;">详细步骤:</p>
+                        <div style="font-size: 12px; line-height: 1.6; max-height: 200px; overflow-y: auto;">
+                          ${steps}
+                        </div>
+                      </div>
+                    </div>
+                  `,
+                });
+                infoWindow.open(mapRef.current, midPoint);
+              });
+
+              markers.push(labelMarker);
+            } else {
+              console.warn(`路线规划失败: ${startPoint} -> ${endPoint}`, status, result);
+
+              // 如果路线规划失败，回退到直线显示
+              const polyline = new window.AMap.Polyline({
+                path: [startPoint, endPoint],
+                strokeColor: colors[dayIndex % colors.length],
+                strokeWeight: 3,
+                strokeOpacity: 0.6,
+                strokeStyle: 'dashed', // 使用虚线表示这是估算路线
+              });
+              mapRef.current.add(polyline);
+              polylinesRef.current.push(polyline); // 保存路线引用
+
+              // 仍然显示直线距离和估算时间
+              const distance = (straightDistance / 1000).toFixed(1);
+              const estimatedTime = Math.round((straightDistance / 1000) / 5 * 60);
+              const midLng = (startPoint[0] + endPoint[0]) / 2;
+              const midLat = (startPoint[1] + endPoint[1]) / 2;
+
+              const labelContent = document.createElement('div');
+              labelContent.style.cssText = `
+                background: rgba(255, 255, 255, 0.95);
+                color: ${colors[dayIndex % colors.length]};
+                padding: 4px 8px;
+                border-radius: 8px;
+                font-size: 11px;
+                font-weight: bold;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                white-space: nowrap;
+                border: 1px solid ${colors[dayIndex % colors.length]};
+              `;
+              labelContent.innerHTML = `约${distance}km / ${estimatedTime}分钟`;
+
+              const labelMarker = new window.AMap.Marker({
+                position: [midLng, midLat],
+                content: labelContent,
+                offset: new window.AMap.Pixel(-30, -10),
+                zIndex: 200,
+              });
+
+              markers.push(labelMarker);
+            }
           });
-
-          markers.push(labelMarker);
         }
       }
     });
@@ -365,16 +477,11 @@ const MapView: React.FC<MapViewProps> = ({
     // 添加标记到地图
     mapRef.current.add(markers);
 
-    // 添加路线到地图
-    if (polylines.length > 0) {
-      mapRef.current.add(polylines);
-    }
-
     // 自动调整视野以显示所有点
     if (points.length > 0) {
       mapRef.current.setFitView();
     }
-  }, [itinerary, onMarkerClick]);
+  }, [itinerary, onMarkerClick, routeMode]); // 添加routeMode依赖
 
   // 暴露定位到特定坐标的方法
   useEffect(() => {
@@ -395,7 +502,31 @@ const MapView: React.FC<MapViewProps> = ({
   }
 
   return (
-    <div className="map-view" style={{ height }}>
+    <div className="map-view" style={{ height, position: 'relative' }}>
+      {/* 交通方式切换按钮 */}
+      {!loading && itinerary && itinerary.length > 0 && (
+        <div className="route-mode-selector">
+          <Space>
+            <Button
+              type={routeMode === 'driving' ? 'primary' : 'default'}
+              icon={<CarOutlined />}
+              onClick={() => setRouteMode('driving')}
+              size="small"
+            >
+              驾车
+            </Button>
+            <Button
+              type={routeMode === 'walking' ? 'primary' : 'default'}
+              icon={<ManOutlined />}
+              onClick={() => setRouteMode('walking')}
+              size="small"
+            >
+              步行
+            </Button>
+          </Space>
+        </div>
+      )}
+
       {loading && (
         <div className="map-loading">
           <Spin size="large" tip="加载地图中...">

@@ -130,7 +130,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         const mergedInfo: TravelInfo = {
           ...travelInfo,
           ...Object.fromEntries(
-            Object.entries(extractedInfo).filter(([_, v]) => v !== null && v !== undefined)
+            Object.entries(extractedInfo).filter(([, v]) => v !== null && v !== undefined)
           ),
         };
 
@@ -314,40 +314,36 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   // 生成旅行计划
   const generatePlan = async (info: TravelInfo, userInput: string) => {
-    try {
-      console.log('🎯 生成旅行计划，信息:', info);
+    console.log('🎯 生成旅行计划，信息:', info);
 
-      const result = await generateTravelPlan({
-        destination: info.destination!,
-        days: info.days!,
-        budget: info.budget!,
-        travelers: info.travelers!,
-        preferences: info.preferences || [],
-        startDate: info.startDate!,
-        userInput,
-      });
+    const result = await generateTravelPlan({
+      destination: info.destination!,
+      days: info.days!,
+      budget: info.budget!,
+      travelers: info.travelers!,
+      preferences: info.preferences || [],
+      startDate: info.startDate!,
+      userInput,
+    });
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `✅ 行程生成成功！\n\n我为您生成了${info.destination}的${info.days}天行程计划（${formatDate(info.startDate!)}出发）。\n\n${result.suggestions}\n\n详细行程已显示在右侧，您可以查看每日的具体安排。`,
-        timestamp: new Date(),
-      };
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: `✅ 行程生成成功！\n\n我为您生成了${info.destination}的${info.days}天行程计划（${formatDate(info.startDate!)}出发）。\n\n${result.suggestions}\n\n详细行程已显示在右侧，您可以查看每日的具体安排。`,
+      timestamp: new Date(),
+    };
 
-      setMessages((prev) => [...prev, assistantMessage]);
+    setMessages((prev) => [...prev, assistantMessage]);
 
-      // 通知父组件
-      if (onPlanGenerated) {
-        onPlanGenerated(result);
-      }
-
-      // 重置收集状态
-      setTravelInfo({});
-      setIsCollecting(false);
-      setCollectionStage(null);
-    } catch (error) {
-      throw error;
+    // 通知父组件
+    if (onPlanGenerated) {
+      onPlanGenerated(result);
     }
+
+    // 重置收集状态
+    setTravelInfo({});
+    setIsCollecting(false);
+    setCollectionStage(null);
   };
 
   // 错误处理
@@ -471,8 +467,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   // 提取出发日期
   const extractStartDate = (text: string): string | null => {
-    const trimmedText = text.trim();
-
     // 匹配"明天"、"后天"等相对日期
     if (/明天|明日/.test(text)) {
       return getTomorrowDate();

@@ -41,8 +41,10 @@ const callLLM = async (prompt: string, systemPrompt?: string): Promise<string> =
     ];
 
     // 根据不同服务构建请求体
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let requestBody: any;
-    let headers: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const headers: any = {
       'Content-Type': 'application/json',
     };
     let apiEndpoint = endpoint;
@@ -229,7 +231,7 @@ export const generateTravelPlan = async (params: {
 要求：
 1. 必须直接返回纯 JSON 对象，不要包含任何 markdown 标记（如 \`\`\`json）
 2. 不要对 JSON 进行转义，直接返回原始 JSON 对象
-3. JSON 中的字符串值可以包含中文，但不要使用转义的引号（\"）
+3. JSON 中的字符串值可以包含中文，但不要使用转义的引号
 4. 包含每日详细行程
 5. 包含交通、住宿、餐饮、景点推荐
 6. 考虑时间安排的合理性
@@ -280,6 +282,27 @@ export const generateTravelPlan = async (params: {
   * 公交：1-2元
   * 出租车：起步价13元 + 里程费
   * 网约车：比出租车略贵10-20%
+
+✈️ 城际交通要求（新增）：
+- 第一天必须包含从出发地到目的地的交通信息（如果用户提供了出发地）
+- 最后一天必须包含从目的地返回出发地的交通信息
+- 城际交通信息放在 transportation 数组中，包含以下字段：
+  * type: "flight"（飞机）或 "train"（高铁/火车）
+  * flight_number 或 train_number: 车次号（参考，如"CA1234"、"G123"）
+  * from: 出发机场/车站（如"上海虹桥机场"、"北京南站"）
+  * to: 到达机场/车站
+  * departure_time: 出发时间（如"08:00"）
+  * arrival_time: 到达时间（如"10:30"）
+  * duration: 飞行/行驶时间（如"2小时30分钟"）
+  * price: 参考票价（数字类型）
+  * notes: 注意事项（如"建议提前2小时到达机场"）
+- 票价要真实合理：
+  * 国内航班：500-2000元（根据距离）
+  * 高铁：根据距离，100-1000元
+  * 普通火车：根据距离，50-500元
+- 时间安排要合理：
+  * 飞机：建议早上8点左右出发，下午5点左右返回
+  * 高铁：根据距离安排，避免太早或太晚
 
 🎯 用户指定景点要求：
 ${specificAttractions.length > 0 ? `- 用户明确要求访问以下景点：${specificAttractions.join('、')}
@@ -402,12 +425,14 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
       "transportation": [
         {
           "type": "flight",
-          "from": "出发地",
-          "to": "目的地",
+          "from": "上海虹桥机场",
+          "to": "北京首都机场",
           "departure_time": "08:00",
-          "arrival_time": "10:00",
-          "price": 500,
-          "duration": "2小时"
+          "arrival_time": "10:30",
+          "duration": "2小时30分钟",
+          "price": 800,
+          "flight_number": "CA1234（参考）",
+          "notes": "建议提前2小时到达机场办理值机手续"
         }
       ],
       "meals": [
@@ -486,7 +511,7 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
             JSON.parse(unescaped);
             jsonStr = unescaped;
             console.log('✅ JSON 字符串反转义成功(方法2)');
-          } catch (e) {
+          } catch {
             console.warn('反转义后仍然无效，保持原样');
           }
         }
@@ -604,6 +629,7 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
       );
 
       // 4. 移除控制字符（在字符串外部的）
+      // eslint-disable-next-line no-control-regex
       fixedStr = fixedStr.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
 
       // 4. 尝试解析修复后的 JSON
@@ -636,7 +662,7 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
             travelers: params.travelers,
             preferences: params.preferences,
           };
-        } catch (thirdError) {
+        } catch {
           console.error('所有修复尝试均失败');
           throw secondError;
         }
@@ -716,6 +742,7 @@ ${JSON.stringify(plan.itinerary, null, 2)}
       );
 
       // 3. 移除控制字符
+      // eslint-disable-next-line no-control-regex
       fixedStr = fixedStr.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
 
       try {
@@ -938,6 +965,7 @@ ${Object.entries(categoryStats).map(([cat, amount]) => {
       );
 
       // 3. 移除控制字符
+      // eslint-disable-next-line no-control-regex
       fixedStr = fixedStr.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
 
       try {

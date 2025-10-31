@@ -33,6 +33,7 @@ import {
   CoffeeOutlined,
   GiftOutlined,
   InfoCircleOutlined,
+  AudioOutlined,
 } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import dayjs from 'dayjs';
@@ -49,6 +50,7 @@ import {
 import { analyzeBudget } from '../services/llm';
 import type { Expense, ExpenseCategory, BudgetAnalysis } from '../types';
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_COLORS } from '../constants';
+import VoiceInput from '../components/VoiceInput';
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -65,6 +67,8 @@ const Budget = () => {
   const [aiAnalysisVisible, setAiAnalysisVisible] = useState(false);
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
   const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [voiceInputField, setVoiceInputField] = useState<'amount' | 'description' | null>(null);
   const [form] = Form.useForm();
 
   // 加载计划列表
@@ -156,6 +160,175 @@ const Budget = () => {
     }
   };
 
+  // 解析金额的辅助函数
+  const parseExpenseAmount = (text: string): number | null => {
+    // 匹配各种金额表达方式
+    const patterns = [
+      /(\d+\.?\d*)元/,
+      /(\d+\.?\d*)块/,
+      /(\d+\.?\d*)块钱/,
+      /花了(\d+\.?\d*)/,
+      /(\d+\.?\d*)$/,  // 纯数字
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const amount = parseFloat(match[1]);
+        if (!isNaN(amount) && amount > 0) {
+          return amount;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  // 解析类别的辅助函数
+  const parseExpenseCategory = (text: string): ExpenseCategory | null => {
+    const categoryKeywords: Record<ExpenseCategory, string[]> = {
+      transportation: ['交通', '出租车', '地铁', '公交', '打车', '滴滴', '车费', '高铁', '火车', '飞机', '航班'],
+      accommodation: ['住宿', '酒店', '宾馆', '民宿', '房费'],
+      food: ['吃饭', '午餐', '晚餐', '早餐', '餐饮', '饭', '吃', '美食'],
+      attraction: ['门票', '景点', '参观', '游览'],
+      shopping: ['购物', '买', '商场', '超市'],
+      other: ['其他'],
+    };
+
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        return category as ExpenseCategory;
+      }
+    }
+
+    return null;
+  };
+
+  // 语音识别结果处理
+  const handleVoiceResult = (text: string) => {
+    console.log('语音识别结果:', text);
+
+    if (voiceInputField === 'amount') {
+      // 解析金额
+      const amount = parseExpenseAmount(text);
+      if (amount !== null) {
+        form.setFieldsValue({ amount });
+        message.success(`识别到金额: ¥${amount}`);
+      } else {
+        message.warning('未能识别到有效金额，请重试');
+      }
+    } else if (voiceInputField === 'description') {
+      // 直接使用识别文本作为描述
+      form.setFieldsValue({ description: text });
+    }
+
+    // 尝试识别类别
+    const category = parseExpenseCategory(text);
+    if (category) {
+      form.setFieldsValue({ category });
+      message.success(`识别到类别: ${EXPENSE_CATEGORIES[category]}`);
+    }
+
+    setShowVoiceInput(false);
+    setVoiceInputField(null);
+  };
+
+  // 检查预算状态
+  const checkBudgetStatus = () => {
+    const selectedPlan = plans.find((p) => p.id === selectedPlanId);
+    if (!selectedPlan) return;
+
+    const totalBudget = selectedPlan.budget;
+    const totalSpent = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+    const usagePercentage = (totalSpent / totalBudget) * 100;
+    const remaining = totalBudget - totalSpent;
+
+    // 预算超支
+    if (totalSpent > totalBudget) {
+      Modal.error({
+        title: '❌ 预算超支提醒',
+        content: (
+          <div>
+            <p style={{ fontSize: 16, fontWeight: 'bold', color: '#ff4d4f', marginBottom: 12 }}>
+              您的旅行预算已超支！
+            </p>
+            <div style={{ background: '#fff1f0', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+              <p style={{ margin: '4px 0' }}>
+                <strong>总预算：</strong>¥{totalBudget.toFixed(2)}
+              </p>
+              <p style={{ margin: '4px 0' }}>
+                <strong>已花费：</strong>¥{totalSpent.toFixed(2)}
+              </p>
+              <p style={{ margin: '4px 0', color: '#ff4d4f' }}>
+                <strong>超支金额：</strong>¥{Math.abs(remaining).toFixed(2)}
+              </p>
+              <p style={{ margin: '4px 0' }}>
+                <strong>预算使用率：</strong>{usagePercentage.toFixed(1)}%
+              </p>
+            </div>
+            <p style={{ fontSize: 14, color: '#666' }}>
+              💡 建议：
+            </p>
+            <ul style={{ fontSize: 14, color: '#666', paddingLeft: 20 }}>
+              <li>调整后续行程，减少非必要开支</li>
+              <li>选择更经济的交通和住宿方式</li>
+              <li>考虑增加旅行预算</li>
+            </ul>
+          </div>
+        ),
+        okText: '我知道了',
+        width: 500,
+      });
+    }
+    // 预算即将用完（90%）
+    else if (usagePercentage >= 90) {
+      Modal.warning({
+        title: '⚠️ 预算预警',
+        content: (
+          <div>
+            <p style={{ fontSize: 16, fontWeight: 'bold', color: '#faad14', marginBottom: 12 }}>
+              您的预算即将用完！
+            </p>
+            <div style={{ background: '#fffbe6', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+              <p style={{ margin: '4px 0' }}>
+                <strong>总预算：</strong>¥{totalBudget.toFixed(2)}
+              </p>
+              <p style={{ margin: '4px 0' }}>
+                <strong>已花费：</strong>¥{totalSpent.toFixed(2)}
+              </p>
+              <p style={{ margin: '4px 0', color: '#faad14' }}>
+                <strong>剩余预算：</strong>¥{remaining.toFixed(2)}
+              </p>
+              <p style={{ margin: '4px 0' }}>
+                <strong>预算使用率：</strong>{usagePercentage.toFixed(1)}%
+              </p>
+            </div>
+            <p style={{ fontSize: 14, color: '#666' }}>
+              💡 建议：请注意控制后续支出，避免预算超支
+            </p>
+          </div>
+        ),
+        okText: '我知道了',
+        width: 500,
+      });
+    }
+    // 预算使用超过80%
+    else if (usagePercentage >= 80) {
+      message.warning({
+        content: (
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>⚠️ 预算提醒</div>
+            <div>您已使用 {usagePercentage.toFixed(1)}% 的预算</div>
+            <div style={{ marginTop: 8, fontSize: 12 }}>
+              剩余预算: ¥{remaining.toFixed(2)}
+            </div>
+          </div>
+        ),
+        duration: 5,
+      });
+    }
+  };
+
   // 添加费用
   const handleAddExpense = async () => {
     try {
@@ -184,7 +357,10 @@ const Budget = () => {
       });
       setModalVisible(false);
       form.resetFields();
-      loadExpenses();
+      await loadExpenses();
+
+      // 检查预算使用情况
+      checkBudgetStatus();
     } catch (error: any) {
       console.error('添加费用失败:', error);
       message.error({
@@ -622,42 +798,103 @@ const Budget = () => {
           onCancel={() => {
             setModalVisible(false);
             form.resetFields();
+            setShowVoiceInput(false);
+            setVoiceInputField(null);
           }}
           okText="添加"
           cancelText="取消"
+          width={600}
         >
-          <Form form={form} layout="vertical">
-            <Form.Item label="类别" name="category" rules={[{ required: true, message: '请选择类别' }]}>
-              <Select placeholder="请选择费用类别">
-                {Object.entries(EXPENSE_CATEGORIES).map(([key, label]) => (
-                  <Option key={key} value={key}>
-                    <Space>
-                      {getCategoryIcon(key as ExpenseCategory)}
-                      {label}
-                    </Space>
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                precision={2}
-                prefix="¥"
-                placeholder="请输入金额"
+          {showVoiceInput ? (
+            <VoiceInput
+              onResult={handleVoiceResult}
+              onCancel={() => {
+                setShowVoiceInput(false);
+                setVoiceInputField(null);
+              }}
+            />
+          ) : (
+            <Form form={form} layout="vertical">
+              <Form.Item label="类别" name="category" rules={[{ required: true, message: '请选择类别' }]}>
+                <Select placeholder="请选择费用类别">
+                  {Object.entries(EXPENSE_CATEGORIES).map(([key, label]) => (
+                    <Option key={key} value={key}>
+                      <Space>
+                        {getCategoryIcon(key as ExpenseCategory)}
+                        {label}
+                      </Space>
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
+                <Space.Compact style={{ width: '100%' }}>
+                  <InputNumber
+                    style={{ flex: 1 }}
+                    min={0}
+                    precision={2}
+                    prefix="¥"
+                    placeholder="请输入金额"
+                  />
+                  <Button
+                    icon={<AudioOutlined />}
+                    onClick={() => {
+                      setShowVoiceInput(true);
+                      setVoiceInputField('amount');
+                    }}
+                    type="primary"
+                    ghost
+                  >
+                    语音输入
+                  </Button>
+                </Space.Compact>
+              </Form.Item>
+
+              <Form.Item label="描述" name="description" rules={[{ required: true, message: '请输入描述' }]}>
+                <Space.Compact style={{ width: '100%' }}>
+                  <Input
+                    style={{ flex: 1 }}
+                    placeholder="例如：午餐、出租车费"
+                  />
+                  <Button
+                    icon={<AudioOutlined />}
+                    onClick={() => {
+                      setShowVoiceInput(true);
+                      setVoiceInputField('description');
+                    }}
+                    type="primary"
+                    ghost
+                  >
+                    语音
+                  </Button>
+                </Space.Compact>
+              </Form.Item>
+
+              <Form.Item label="日期" name="date" rules={[{ required: true, message: '请选择日期' }]}>
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+
+              <Form.Item label="备注" name="notes">
+                <Input.TextArea rows={3} placeholder="可选的备注信息" />
+              </Form.Item>
+
+              {/* 快捷语音输入提示 */}
+              <Alert
+                message="💡 语音输入提示"
+                description={
+                  <div>
+                    <p style={{ margin: '4px 0' }}>• 说"午餐花了50块"会自动识别金额和类别</p>
+                    <p style={{ margin: '4px 0' }}>• 说"出租车费30元"会自动填充</p>
+                    <p style={{ margin: '4px 0' }}>• 说"门票80"会识别为景点费用</p>
+                  </div>
+                }
+                type="info"
+                showIcon
+                style={{ marginTop: 16 }}
               />
-            </Form.Item>
-            <Form.Item label="描述" name="description" rules={[{ required: true, message: '请输入描述' }]}>
-              <Input placeholder="例如：午餐、出租车费" />
-            </Form.Item>
-            <Form.Item label="日期" name="date" rules={[{ required: true, message: '请选择日期' }]}>
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item label="备注" name="notes">
-              <Input.TextArea rows={3} placeholder="可选的备注信息" />
-            </Form.Item>
-          </Form>
+            </Form>
+          )}
         </Modal>
 
         {/* AI预算分析对话框 */}

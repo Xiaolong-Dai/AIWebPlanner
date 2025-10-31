@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Timeline, Tag, Space, Typography, Divider, Collapse, Button } from 'antd';
+import { Card, Timeline, Tag, Space, Typography, Divider, Button, Alert } from 'antd';
 import {
   ClockCircleOutlined,
   EnvironmentOutlined,
@@ -10,6 +10,7 @@ import {
   FieldTimeOutlined,
   DownOutlined,
   UpOutlined,
+  RocketOutlined,
 } from '@ant-design/icons';
 import type { DayItinerary, Activity } from '../../types/common';
 import './index.css';
@@ -401,6 +402,75 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ dayItinerary, dayNumber, 
                         )}
                       </div>
                     </div>
+                  ))}
+                </Space>
+              </div>
+            </>
+          )}
+
+          {/* 城际交通信息 */}
+          {dayItinerary.transportation && dayItinerary.transportation.length > 0 && (
+            <>
+              <Divider style={{ margin: '16px 0' }} />
+              <div className="intercity-transport">
+                <Title level={5}>
+                  <Space>
+                    <RocketOutlined />
+                    <span>城际交通</span>
+                  </Space>
+                </Title>
+                <Space direction="vertical" size="middle" style={{ width: '100%', marginTop: 8 }}>
+                  {dayItinerary.transportation.map((trans: any, idx: number) => (
+                    <Card
+                      key={idx}
+                      size="small"
+                      style={{ background: '#e6f7ff', border: '1px solid #91d5ff' }}
+                    >
+                      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Space>
+                            <RocketOutlined style={{ color: '#1890ff' }} />
+                            <Text strong>
+                              {trans.type === 'flight' ? '航班' : '高铁/火车'}
+                              {(trans.flight_number || trans.train_number) ? `: ${trans.flight_number || trans.train_number}` : ''}
+                            </Text>
+                          </Space>
+                          {trans.price && (
+                            <Text type="danger" strong>¥{trans.price}</Text>
+                          )}
+                        </div>
+
+                        <div>
+                          <Text type="secondary">
+                            <EnvironmentOutlined /> {trans.from} → {trans.to}
+                          </Text>
+                        </div>
+
+                        <div>
+                          <Text type="secondary">
+                            <ClockCircleOutlined /> {trans.departure_time} - {trans.arrival_time}
+                          </Text>
+                          {trans.duration && (
+                            <Text type="secondary" style={{ marginLeft: 16 }}>
+                              <FieldTimeOutlined /> {trans.duration}
+                            </Text>
+                          )}
+                        </div>
+
+                        {trans.notes && (
+                          <Alert
+                            message={trans.notes}
+                            type="info"
+                            showIcon
+                            style={{ marginTop: 8 }}
+                          />
+                        )}
+
+                        <Text type="secondary" style={{ fontSize: 12, fontStyle: 'italic' }}>
+                          ℹ️ 以上信息仅供参考，实际票价和时刻请以购票平台为准
+                        </Text>
+                      </Space>
+                    </Card>
                   ))}
                 </Space>
               </div>
