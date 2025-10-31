@@ -407,3 +407,134 @@ h3 {
   margin-top: var(--spacing-xl) !important;
 }
 
+/* ========================================
+   预算管理页面特定样式
+   ======================================== */
+
+/* 删除按钮动画 */
+.expense-delete-btn {
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.expense-delete-btn:hover {
+  transform: scale(1.1);
+  background: #fff1f0 !important;
+}
+
+.expense-delete-btn:active {
+  transform: scale(0.95);
+}
+
+/* 添加费用按钮脉冲动画 */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(24, 144, 255, 0.5);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+  }
+}
+
+.add-expense-btn-primary:not(:disabled):hover {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* 费用表格行悬停效果 */
+.ant-table-tbody > tr:hover > td {
+  background: #fafafa !important;
+  transition: background 0.2s ease;
+}
+
+/* 费用金额高亮 */
+.expense-amount {
+  font-weight: 600;
+  color: #ff4d4f;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+/* Modal 标题样式 */
+.expense-modal-title {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.expense-modal-title .anticon {
+  margin-right: 8px;
+  color: #1890ff;
+}
+
+/* 确认删除对话框样式 */
+.ant-modal-confirm-body .ant-modal-confirm-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.ant-modal-confirm-body .ant-modal-confirm-content {
+  margin-top: 12px;
+  color: #595959;
+}
+
+/* 费用详情卡片 */
+.expense-detail-card {
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.expense-detail-card .ant-tag {
+  margin-bottom: 4px;
+}
+
+/* 空状态优化 */
+.budget-empty-state {
+  padding: 60px 20px;
+}
+
+.budget-empty-state .ant-empty-description {
+  margin-top: 16px;
+}
+
+/* 按钮组间距 */
+.budget-action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .budget-action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .budget-action-buttons .ant-btn {
+    width: 100%;
+  }
+
+  .expense-modal-title {
+    font-size: 16px;
+  }
+}
+
+/* 表格操作列固定宽度 */
+.ant-table-cell-fix-right {
+  background: #fff !important;
+}
+
+/* 加载状态按钮 */
+.ant-btn-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+

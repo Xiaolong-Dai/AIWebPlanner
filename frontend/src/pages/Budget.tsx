@@ -34,6 +34,8 @@ import {
   GiftOutlined,
   InfoCircleOutlined,
   AudioOutlined,
+  ExclamationCircleOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import dayjs from 'dayjs';
@@ -71,6 +73,22 @@ const Budget = () => {
   const [voiceInputField, setVoiceInputField] = useState<'amount' | 'description' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // 防止重复提交
   const [form] = Form.useForm();
+
+  // 快捷键支持：Ctrl/Cmd + K 打开添加费用对话框
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K (Windows/Linux) 或 Cmd+K (Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (selectedPlanId && !modalVisible) {
+          setModalVisible(true);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPlanId, modalVisible]);
 
   // 加载计划列表
   useEffect(() => {
@@ -402,44 +420,82 @@ const Budget = () => {
     }
   };
 
-  // 删除费用
-  const handleDeleteExpense = async (id: string) => {
-    try {
-      const expense = expenses.find(e => e.id === id);
-      await deleteExpense(id);
-      message.success({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 删除成功</div>
-            <div>费用记录已删除</div>
-            {expense && (
-              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-                {expense.category} - ¥{expense.amount}
-              </div>
-            )}
-          </div>
-        ),
-        duration: 3,
-      });
-      loadExpenses();
-    } catch (error: any) {
-      console.error('删除失败:', error);
-      message.error({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>❌ 删除失败</div>
-            <div>无法删除该费用记录</div>
-            <div style={{ marginTop: 8, fontSize: 12 }}>
-              <div>错误原因: {error.message}</div>
-              <div style={{ marginTop: 4, opacity: 0.8 }}>
-                请稍后重试
-              </div>
+  // 删除费用（带二次确认）
+  const handleDeleteExpense = (record: Expense) => {
+    Modal.confirm({
+      title: '确认删除费用记录',
+      icon: <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />,
+      content: (
+        <div>
+          <p style={{ marginBottom: 12 }}>您确定要删除这条费用记录吗？此操作无法撤销。</p>
+          <div style={{
+            background: '#fff7e6',
+            border: '1px solid #ffd591',
+            borderRadius: 4,
+            padding: 12,
+            marginTop: 12
+          }}>
+            <div style={{ marginBottom: 4 }}>
+              <Tag color={EXPENSE_CATEGORY_COLORS[record.category]} icon={getCategoryIcon(record.category)}>
+                {EXPENSE_CATEGORIES[record.category]}
+              </Tag>
+            </div>
+            <div style={{ fontSize: 13, color: '#595959' }}>
+              <div><strong>金额：</strong>¥{record.amount.toFixed(2)}</div>
+              <div><strong>描述：</strong>{record.description}</div>
+              <div><strong>日期：</strong>{dayjs(record.date).format('YYYY-MM-DD')}</div>
             </div>
           </div>
-        ),
-        duration: 5,
-      });
-    }
+        </div>
+      ),
+      okText: '确认删除',
+      okType: 'danger',
+      cancelText: '取消',
+      width: 480,
+      centered: true,
+      onOk: async () => {
+        try {
+          console.log('🗑️ 开始删除费用记录:', record.id);
+          await deleteExpense(record.id);
+
+          message.success({
+            content: (
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 删除成功</div>
+                <div>费用记录已删除</div>
+                <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
+                  {EXPENSE_CATEGORIES[record.category]} - ¥{record.amount.toFixed(2)}
+                </div>
+              </div>
+            ),
+            duration: 3,
+          });
+
+          console.log('✅ 费用删除成功');
+          await loadExpenses();
+
+          // 检查预算使用情况
+          checkBudgetStatus();
+        } catch (error: any) {
+          console.error('❌ 删除失败:', error);
+          message.error({
+            content: (
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: 8 }}>❌ 删除失败</div>
+                <div>无法删除该费用记录</div>
+                <div style={{ marginTop: 8, fontSize: 12 }}>
+                  <div>错误原因: {error.message}</div>
+                  <div style={{ marginTop: 4, opacity: 0.8 }}>
+                    请稍后重试
+                  </div>
+                </div>
+              </div>
+            ),
+            duration: 5,
+          });
+        }
+      },
+    });
   };
 
   // AI预算分析
@@ -565,12 +621,14 @@ const Budget = () => {
       title: '日期',
       dataIndex: 'date',
       key: 'date',
+      width: 120,
       render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
     },
     {
       title: '类别',
       dataIndex: 'category',
       key: 'category',
+      width: 120,
       render: (category: ExpenseCategory) => (
         <Tag color={EXPENSE_CATEGORY_COLORS[category]} icon={getCategoryIcon(category)}>
           {EXPENSE_CATEGORIES[category]}
@@ -581,31 +639,53 @@ const Budget = () => {
       title: '金额',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number) => `¥${amount.toFixed(2)}`,
+      width: 120,
+      render: (amount: number) => (
+        <span style={{ fontWeight: 600, color: '#ff4d4f', fontSize: 14 }}>
+          ¥{amount.toFixed(2)}
+        </span>
+      ),
     },
     {
       title: '描述',
       dataIndex: 'description',
       key: 'description',
+      ellipsis: true,
     },
     {
       title: '备注',
       dataIndex: 'notes',
       key: 'notes',
+      ellipsis: true,
     },
     {
       title: '操作',
       key: 'action',
+      width: 100,
+      fixed: 'right' as const,
       render: (_: any, record: Expense) => (
-        <Button
-          type="link"
-          danger
-          size="small"
-          icon={<DeleteOutlined />}
-          onClick={() => handleDeleteExpense(record.id)}
-        >
-          删除
-        </Button>
+        <Tooltip title="删除此费用记录">
+          <Button
+            type="text"
+            danger
+            size="middle"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteExpense(record)}
+            style={{
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.background = '#fff1f0';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = 'transparent';
+            }}
+          >
+            删除
+          </Button>
+        </Tooltip>
       ),
     },
   ];
@@ -616,13 +696,14 @@ const Budget = () => {
     <div style={{ minHeight: '100vh', background: '#f0f2f5' }}>
       <Content style={{ padding: '24px' }}>
         <div style={{ marginBottom: 16 }}>
-          <Space>
-            <span>选择旅行计划:</span>
+          <Space size="middle" wrap>
+            <span style={{ fontWeight: 500, color: '#262626' }}>选择旅行计划:</span>
             <Select
               style={{ width: 300 }}
               value={selectedPlanId}
               onChange={setSelectedPlanId}
               placeholder="请选择旅行计划"
+              size="large"
             >
               {plans.map((plan) => (
                 <Option key={plan.id} value={plan.id}>
@@ -630,14 +711,46 @@ const Budget = () => {
                 </Option>
               ))}
             </Select>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setModalVisible(true)}
-              disabled={!selectedPlanId}
+
+            {/* 优化后的添加费用按钮 */}
+            <Tooltip
+              title={
+                !selectedPlanId
+                  ? '请先选择一个旅行计划'
+                  : '点击添加费用记录 (快捷键: Ctrl+K)'
+              }
             >
-              添加费用
-            </Button>
+              <Button
+                type="primary"
+                size="large"
+                icon={<PlusOutlined />}
+                onClick={() => setModalVisible(true)}
+                disabled={!selectedPlanId}
+                style={{
+                  height: 42,
+                  paddingLeft: 20,
+                  paddingRight: 20,
+                  fontWeight: 600,
+                  fontSize: 15,
+                  boxShadow: !selectedPlanId ? 'none' : '0 2px 8px rgba(24, 144, 255, 0.3)',
+                  transition: 'all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1)',
+                  borderRadius: 6,
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedPlanId) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = !selectedPlanId ? 'none' : '0 2px 8px rgba(24, 144, 255, 0.3)';
+                }}
+              >
+                添加费用
+              </Button>
+            </Tooltip>
+
             <Tooltip
               title={
                 !selectedPlanId
@@ -648,9 +761,14 @@ const Budget = () => {
               }
             >
               <Button
+                size="large"
                 onClick={handleAiAnalysis}
                 disabled={!selectedPlanId || expenses.length === 0}
                 icon={<InfoCircleOutlined />}
+                style={{
+                  height: 42,
+                  borderRadius: 6,
+                }}
               >
                 AI预算分析
               </Button>
@@ -739,8 +857,43 @@ const Budget = () => {
 
             {expenses.length === 0 ? (
               <Card>
-                <Empty description="暂无费用记录" image={Empty.PRESENTED_IMAGE_SIMPLE}>
-                  <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>
+                <Empty
+                  description={
+                    <div>
+                      <div style={{ fontSize: 16, color: '#8c8c8c', marginBottom: 8 }}>
+                        暂无费用记录
+                      </div>
+                      <div style={{ fontSize: 13, color: '#bfbfbf' }}>
+                        开始记录您的旅行支出，更好地管理预算
+                      </div>
+                    </div>
+                  }
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                >
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<PlusOutlined />}
+                    onClick={() => setModalVisible(true)}
+                    style={{
+                      height: 44,
+                      paddingLeft: 32,
+                      paddingRight: 32,
+                      fontSize: 15,
+                      fontWeight: 600,
+                      borderRadius: 6,
+                      boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(24, 144, 255, 0.3)';
+                    }}
+                  >
                     添加第一笔费用
                   </Button>
                 </Empty>
@@ -810,7 +963,12 @@ const Budget = () => {
 
         {/* 添加费用对话框 */}
         <Modal
-          title="添加费用"
+          title={
+            <div style={{ fontSize: 18, fontWeight: 600, color: '#262626' }}>
+              <PlusOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+              添加费用记录
+            </div>
+          }
           open={modalVisible}
           onOk={handleAddExpense}
           onCancel={() => {
@@ -821,12 +979,31 @@ const Budget = () => {
               setVoiceInputField(null);
             }
           }}
-          okText="添加"
+          okText={isSubmitting ? '提交中...' : '确认添加'}
           cancelText="取消"
           confirmLoading={isSubmitting}
           maskClosable={!isSubmitting}
           closable={!isSubmitting}
-          width={600}
+          keyboard={!isSubmitting}
+          centered
+          width={640}
+          okButtonProps={{
+            size: 'large',
+            style: {
+              height: 40,
+              paddingLeft: 24,
+              paddingRight: 24,
+              fontWeight: 600,
+            }
+          }}
+          cancelButtonProps={{
+            size: 'large',
+            style: {
+              height: 40,
+              paddingLeft: 24,
+              paddingRight: 24,
+            }
+          }}
         >
           {showVoiceInput ? (
             <VoiceInput
