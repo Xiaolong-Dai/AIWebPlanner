@@ -63,25 +63,42 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ dayItinerary, dayNumber, 
   const calculateDailyBudget = () => {
     let total = 0;
 
-    // 活动费用
+    // 活动费用（优先使用 cost，如果没有则使用 ticket_price）
     dayItinerary.activities.forEach(activity => {
-      if (activity.cost) total += activity.cost;
-      if (activity.ticket_price) total += activity.ticket_price;
+      // 如果有 cost 字段，使用 cost（通常已包含所有费用）
+      if (activity.cost !== undefined && activity.cost !== null) {
+        total += activity.cost;
+      }
+      // 如果没有 cost 但有 ticket_price，使用 ticket_price
+      else if (activity.ticket_price !== undefined && activity.ticket_price !== null) {
+        total += activity.ticket_price;
+      }
     });
+
+    // 城际交通费用（新增）
+    if (dayItinerary.transportation && Array.isArray(dayItinerary.transportation)) {
+      dayItinerary.transportation.forEach((trans: any) => {
+        if (trans.price !== undefined && trans.price !== null) {
+          total += trans.price;
+        }
+      });
+    }
 
     // 住宿费用
     if (dayItinerary.accommodation?.price_per_night) {
       total += dayItinerary.accommodation.price_per_night;
     }
 
-    // 餐饮费用
-    if (dayItinerary.meals) {
+    // 餐饮费用（人均价格）
+    if (dayItinerary.meals && Array.isArray(dayItinerary.meals)) {
       dayItinerary.meals.forEach(meal => {
-        if (meal.price_per_person) total += meal.price_per_person;
+        if (meal.price_per_person !== undefined && meal.price_per_person !== null) {
+          total += meal.price_per_person;
+        }
       });
     }
 
-    return total;
+    return Math.round(total * 100) / 100; // 保留两位小数
   };
 
   // 渲染单个活动
@@ -305,7 +322,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ dayItinerary, dayNumber, 
                 fontWeight: 500,
               }}
             >
-              💰 预算: ¥{dailyBudget}
+              💰 预算: ¥{dailyBudget.toFixed(2)}
             </Tag>
           )}
 

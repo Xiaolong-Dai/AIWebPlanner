@@ -95,6 +95,51 @@ const PlanDetail = () => {
     }
   };
 
+  // 计算 AI 规划的总预算（从行程中计算）
+  const calculatePlannedBudget = () => {
+    if (!plan?.itinerary) return 0;
+
+    let total = 0;
+
+    plan.itinerary.forEach(day => {
+      // 活动费用
+      if (day.activities) {
+        day.activities.forEach(activity => {
+          if (activity.cost !== undefined && activity.cost !== null) {
+            total += activity.cost;
+          } else if (activity.ticket_price !== undefined && activity.ticket_price !== null) {
+            total += activity.ticket_price;
+          }
+        });
+      }
+
+      // 城际交通费用
+      if (day.transportation && Array.isArray(day.transportation)) {
+        day.transportation.forEach((trans: any) => {
+          if (trans.price !== undefined && trans.price !== null) {
+            total += trans.price;
+          }
+        });
+      }
+
+      // 住宿费用
+      if (day.accommodation?.price_per_night) {
+        total += day.accommodation.price_per_night;
+      }
+
+      // 餐饮费用
+      if (day.meals && Array.isArray(day.meals)) {
+        day.meals.forEach(meal => {
+          if (meal.price_per_person !== undefined && meal.price_per_person !== null) {
+            total += meal.price_per_person;
+          }
+        });
+      }
+    });
+
+    return Math.round(total * 100) / 100;
+  };
+
   const getStatusTag = (status: string) => {
     const statusMap: Record<string, { color: string; text: string }> = {
       draft: { color: 'default', text: '草稿' },
@@ -195,7 +240,7 @@ const PlanDetail = () => {
 
         {/* 预算统计 */}
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
                 title="总预算"
@@ -204,20 +249,40 @@ const PlanDetail = () => {
                 prefix="¥"
                 valueStyle={{ color: '#1890ff' }}
               />
+              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                用户设定的旅行预算
+              </div>
             </Card>
           </Col>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="已花费"
+                title="AI 规划预算"
+                value={calculatePlannedBudget()}
+                precision={2}
+                prefix="¥"
+                valueStyle={{ color: '#722ed1' }}
+              />
+              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                根据行程计算的预计费用
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="实际花费"
                 value={budgetAnalysis?.totalSpent || 0}
                 precision={2}
                 prefix="¥"
                 valueStyle={{ color: '#cf1322' }}
               />
+              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                已记录的实际支出
+              </div>
             </Card>
           </Col>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
                 title="剩余预算"
@@ -228,6 +293,9 @@ const PlanDetail = () => {
                   color: budgetAnalysis && budgetAnalysis.remaining < 0 ? '#cf1322' : '#3f8600',
                 }}
               />
+              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                {budgetAnalysis && budgetAnalysis.remaining < 0 ? '预算超支' : '可用余额'}
+              </div>
             </Card>
           </Col>
         </Row>
