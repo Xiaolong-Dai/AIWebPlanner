@@ -60,29 +60,40 @@ export const getExpenseById = async (id: string): Promise<Expense | null> => {
 export const createExpense = async (
   expense: Omit<Expense, 'id' | 'user_id' | 'created_at'>
 ): Promise<Expense> => {
+  console.log('💾 createExpense 被调用，参数:', expense);
+
   const supabase = getSupabaseClient();
-  
+
   // 获取当前用户ID
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  
+
   if (!user) {
     throw new Error('用户未登录');
   }
 
+  console.log('👤 当前用户ID:', user.id);
+
+  const expenseData = {
+    ...expense,
+    user_id: user.id,
+  };
+
+  console.log('📤 准备插入数据库:', expenseData);
+
   const { data, error } = await supabase
     .from('expenses')
-    .insert([
-      {
-        ...expense,
-        user_id: user.id,
-      },
-    ])
+    .insert([expenseData])
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('❌ 数据库插入失败:', error);
+    throw error;
+  }
+
+  console.log('✅ 数据库插入成功，返回数据:', data);
   return data;
 };
 

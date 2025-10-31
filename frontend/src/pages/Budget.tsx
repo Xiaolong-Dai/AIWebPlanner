@@ -69,6 +69,7 @@ const Budget = () => {
   const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);
   const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [voiceInputField, setVoiceInputField] = useState<'amount' | 'description' | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // 防止重复提交
   const [form] = Form.useForm();
 
   // 加载计划列表
@@ -331,9 +332,20 @@ const Budget = () => {
 
   // 添加费用
   const handleAddExpense = async () => {
+    // 防止重复提交
+    if (isSubmitting) {
+      console.warn('⚠️ 正在提交中，请勿重复点击');
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
+      console.log('🚀 开始添加费用...');
+
       const values = await form.validateFields();
-      await createExpense({
+      console.log('📝 表单验证通过:', values);
+
+      const newExpense = await createExpense({
         plan_id: selectedPlanId!,
         category: values.category,
         amount: values.amount,
@@ -342,6 +354,8 @@ const Budget = () => {
         date: values.date.format('YYYY-MM-DD'),
         notes: values.notes || '',
       });
+
+      console.log('✅ 费用添加成功:', newExpense);
 
       message.success({
         content: (
@@ -355,6 +369,7 @@ const Budget = () => {
         ),
         duration: 3,
       });
+
       setModalVisible(false);
       form.resetFields();
       await loadExpenses();
@@ -362,7 +377,7 @@ const Budget = () => {
       // 检查预算使用情况
       checkBudgetStatus();
     } catch (error: any) {
-      console.error('添加费用失败:', error);
+      console.error('❌ 添加费用失败:', error);
       message.error({
         content: (
           <div>
@@ -381,6 +396,9 @@ const Budget = () => {
         ),
         duration: 6,
       });
+    } finally {
+      setIsSubmitting(false);
+      console.log('🏁 费用添加流程结束');
     }
   };
 
@@ -796,13 +814,18 @@ const Budget = () => {
           open={modalVisible}
           onOk={handleAddExpense}
           onCancel={() => {
-            setModalVisible(false);
-            form.resetFields();
-            setShowVoiceInput(false);
-            setVoiceInputField(null);
+            if (!isSubmitting) {
+              setModalVisible(false);
+              form.resetFields();
+              setShowVoiceInput(false);
+              setVoiceInputField(null);
+            }
           }}
           okText="添加"
           cancelText="取消"
+          confirmLoading={isSubmitting}
+          maskClosable={!isSubmitting}
+          closable={!isSubmitting}
           width={600}
         >
           {showVoiceInput ? (
