@@ -315,6 +315,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   // 生成旅行计划
   const generatePlan = async (info: TravelInfo, userInput: string) => {
     console.log('🎯 生成旅行计划，信息:', info);
+    console.log('✈️ 出发城市:', info.departureCity);
 
     const result = await generateTravelPlan({
       destination: info.destination!,
@@ -323,6 +324,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       travelers: info.travelers!,
       preferences: info.preferences || [],
       startDate: info.startDate!,
+      departureCity: info.departureCity, // 传递出发城市
       userInput,
     });
 

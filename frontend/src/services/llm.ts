@@ -223,6 +223,7 @@ export const generateTravelPlan = async (params: {
   travelers: number;
   preferences: string[];
   startDate?: string;
+  departureCity?: string; // 新增：出发城市
   userInput?: string; // 新增：用户原始输入
 }): Promise<{ destination: string; itinerary: DayItinerary[]; suggestions: string; budget?: number; travelers?: number; preferences?: string[] }> => {
   // 提取用户指定的具体景点
@@ -306,9 +307,22 @@ export const generateTravelPlan = async (params: {
   * 晚餐：17:30-20:00
   * 小吃：可穿插在行程中
 
-✈️ 城际交通要求（新增）：
-- 第一天必须包含从出发地到目的地的交通信息（如果用户提供了出发地）
-- 最后一天必须包含从目的地返回出发地的交通信息
+✈️ 城际交通要求（重要！必须严格遵守）：
+${params.departureCity ? `
+⚠️ 用户出发城市：${params.departureCity}
+⚠️ 旅行目的地：${params.destination}
+
+🔴 往返交通规划（必须严格遵守）：
+- 第一天：必须安排从"${params.departureCity}"到"${params.destination}"的交通
+- 最后一天（第${params.days}天）：必须安排从"${params.destination}"返回"${params.departureCity}"的交通
+- ❌ 禁止出现第三个城市！返程目的地必须是出发城市"${params.departureCity}"
+- ❌ 不要规划"${params.destination}"到其他城市的交通
+- ✅ 正确示例：${params.departureCity} → ${params.destination}（去程），${params.destination} → ${params.departureCity}（返程）
+- ❌ 错误示例：${params.departureCity} → ${params.destination}（去程），${params.destination} → 北京（返程）❌
+` : `
+- 如果用户提供了出发地，第一天必须包含从出发地到目的地的交通信息
+- 如果用户提供了出发地，最后一天必须包含从目的地返回出发地的交通信息
+`}
 - 城际交通信息放在 transportation 数组中，包含以下字段：
   * type: "flight"（飞机）或 "train"（高铁/火车）
   * flight_number 或 train_number: 车次号（参考，如"CA1234"、"G123"）
@@ -358,7 +372,16 @@ ${specificAttractions.length > 0 ? `- 用户明确要求访问以下景点：${s
 - 预算：${params.budget} 元
 - 人数：${params.travelers} 人
 - 偏好：${params.preferences.join('、')}
-${params.startDate ? `- 出发日期：${params.startDate}` : ''}`;
+${params.startDate ? `- 出发日期：${params.startDate}` : ''}
+${params.departureCity ? `- 出发城市：${params.departureCity}` : ''}
+
+${params.departureCity ? `
+🔴 重要提醒：这是一次往返旅行！
+- 去程：从 ${params.departureCity} 前往 ${params.destination}
+- 返程：从 ${params.destination} 返回 ${params.departureCity}
+- 请在第1天安排去程交通，在第${params.days}天安排返程交通
+- 返程目的地必须是出发城市 ${params.departureCity}，不要规划到其他城市！
+` : ''}`;
 
   // 如果有具体景点，明确标注
   if (specificAttractions.length > 0) {
@@ -475,6 +498,93 @@ ${specificAttractions.map((a, i) => `${i + 1}. ${a} - 请提供详细的游览�
           "price": 800,
           "flight_number": "CA1234（参考）",
           "notes": "建议提前2小时到达机场办理值机手续"
+        }
+      ],
+      "notes": "第一天从出发地到达目的地，安排轻松的行程"
+    },
+    {
+      "day": ${params.days},
+      "date": "最后一天日期",
+      "theme": "返程",
+      "summary": "返回出发地",
+      "activities": [],
+      "transportation": [
+        {
+          "type": "flight",
+          "from": "北京首都机场",
+          "to": "上海虹桥机场",
+          "from_coordinates": [116.584556, 40.080111],
+          "to_coordinates": [121.336319, 31.197875],
+          "departure_time": "18:00",
+          "arrival_time": "20:30",
+          "duration": "2小时30分钟",
+          "price": 800,
+          "flight_number": "CA5678（参考）",
+          "notes": "返程航班，建议提前2小时到达机场"
+        }
+      ],
+      "notes": "最后一天返回出发地${params.departureCity ? `（${params.departureCity}）` : ''}"
+    }
+  ],
+  "suggestions": "旅行建议和注意事项"
+}
+
+${params.departureCity ? `
+⚠️ 再次强调返程交通：
+- 最后一天（第${params.days}天）的 transportation 数组中，必须包含从"${params.destination}"返回"${params.departureCity}"的交通
+- from 字段：${params.destination}的机场/车站
+- to 字段：${params.departureCity}的机场/车站
+- ❌ 不要写成其他城市！
+- ✅ 正确示例：{ "from": "${params.destination}首都机场", "to": "${params.departureCity}虹桥机场" }
+` : ''}
+
+⚠️ 完整行程结构说明：
+1. 第一天：包含去程交通（如果有出发城市）+ 到达后的活动
+2. 中间几天：正常的旅游活动
+3. 最后一天：上午/下午的活动 + 返程交通（如果有出发城市）
+
+请返回完整的 ${params.days} 天行程，不要省略任何一天！
+
+以下是简化的示例结构（仅供参考格式）：
+{
+  "destination": "${params.destination}",
+  "itinerary": [
+    {
+      "day": 1,
+      "transportation": [{ "from": "${params.departureCity || '出发地'}", "to": "${params.destination}" }]
+    },
+    { "day": 2, "activities": [...] },
+    ...
+    {
+      "day": ${params.days},
+      "transportation": [{ "from": "${params.destination}", "to": "${params.departureCity || '出发地'}" }]
+    }
+  ]
+}
+
+以下是完整的第一天示例（包含所有必需字段）：
+{
+  "destination": "${params.destination}",
+  "itinerary": [
+    {
+      "day": 1,
+      "date": "${params.startDate || '2024-06-01'}",
+      "theme": "抵达${params.destination}",
+      "summary": "从${params.departureCity || '出发地'}抵达${params.destination}，开始旅程",
+      "activities": [...],
+      "transportation": [
+        {
+          "type": "flight",
+          "from": "${params.departureCity || '出发地'}机场",
+          "to": "${params.destination}机场",
+          "from_coordinates": [经度, 纬度],
+          "to_coordinates": [经度, 纬度],
+          "departure_time": "08:00",
+          "arrival_time": "10:30",
+          "duration": "2小时30分钟",
+          "price": 800,
+          "flight_number": "参考航班号",
+          "notes": "建议提前2小时到达机场"
         }
       ],
       "meals": [
