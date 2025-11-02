@@ -21,6 +21,8 @@ on:
 
 env:
   # 阿里云镜像仓库配置
+  # Registry: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com
+  # Namespace: ai-web-planner
   REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
   NAMESPACE: ${{ secrets.ALIYUN_NAMESPACE }}
 

@@ -1,16 +1,15 @@
 # Docker Compose 配置文件 - 使用阿里云镜像仓库
-# 
-# 使用方法:
-# 1. 将 [your-namespace] 替换为你的阿里云命名空间
-# 2. 运行: docker-compose -f docker-compose.aliyun.yml up -d
 #
-# 注意: 如果镜像仓库是私有的，需要先登录:
-# docker login --username=你的阿里云账号 registry.cn-hangzhou.aliyuncs.com
+# 使用方法:
+# 运行: docker-compose -f docker-compose.aliyun.yml up -d
+#
+# 镜像仓库: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com
+# 命名空间: ai-web-planner
 
 services:
   # 后端代理服务
   backend:
-    image: registry.cn-hangzhou.aliyuncs.com/[your-namespace]/backend:latest
+    image: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
     container_name: ai-web-planner-backend
     ports:
       - "3001:3001"
@@ -29,7 +28,7 @@ services:
 
   # 前端应用
   frontend:
-    image: registry.cn-hangzhou.aliyuncs.com/[your-namespace]/frontend:latest
+    image: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
     container_name: ai-web-planner-frontend
     ports:
       - "3000:80"

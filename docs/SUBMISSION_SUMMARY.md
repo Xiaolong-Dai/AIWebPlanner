@@ -88,13 +88,13 @@ docs: 添加完整的作业提交指南和 GitHub Actions 配置
 
 #### 4. 记录信息
 
-记录以下信息（后面会用到）:
+**当前配置信息**:
 
 ```
-Registry 地址: registry.cn-hangzhou.aliyuncs.com
+Registry 地址: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com
 命名空间: ai-web-planner
-用户名: [你的阿里云账号]
-密码: [Registry 登录密码]
+前端镜像: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+后端镜像: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 ```
 
 ---
@@ -115,8 +115,8 @@ Registry 地址: registry.cn-hangzhou.aliyuncs.com
 
 | Name | Value | 说明 |
 |------|-------|------|
-| `ALIYUN_REGISTRY` | `registry.cn-hangzhou.aliyuncs.com` | 阿里云镜像仓库地址 |
-| `ALIYUN_NAMESPACE` | `ai-web-planner` | 你的命名空间 |
+| `ALIYUN_REGISTRY` | `crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com` | 阿里云镜像仓库地址 |
+| `ALIYUN_NAMESPACE` | `ai-web-planner` | 命名空间 |
 | `ALIYUN_USERNAME` | 你的阿里云账号 | 登录用户名 |
 | `ALIYUN_PASSWORD` | Registry登录密码 | 容器镜像服务密码 |
 
@@ -163,14 +163,14 @@ GitHub Actions 已经配置为在推送代码时自动触发。由于我们刚�
 ✅ Docker images built and pushed successfully!
 
 📦 Frontend Image:
-  - registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest
-  - registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:20251102
-  - registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:15b7227
+  - crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+  - crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:20251103
+  - crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:[commit-sha]
 
 📦 Backend Image:
-  - registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest
-  - registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:20251102
-  - registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:15b7227
+  - crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
+  - crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:20251103
+  - crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:[commit-sha]
 ```
 
 ---
@@ -181,10 +181,10 @@ GitHub Actions 已经配置为在推送代码时自动触发。由于我们刚�
 
 ```bash
 # 拉取前端镜像
-docker pull registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest
+docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
 
 # 拉取后端镜像
-docker pull registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest
+docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 ```
 
 #### 2. 运行测试
@@ -192,10 +192,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest
 **方式一: 使用 docker-compose (推荐)**
 
 ```bash
-# 编辑 docker-compose.aliyun.yml
-# 将 [your-namespace] 替换为 ai-web-planner
-
-# 启动服务
+# 启动服务（镜像地址已配置好）
 docker-compose -f docker-compose.aliyun.yml up -d
 
 # 查看状态
@@ -211,11 +208,11 @@ docker-compose -f docker-compose.aliyun.yml ps
 ```bash
 # 运行后端
 docker run -d --name backend -p 3001:3001 \
-  registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest
+  crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 
 # 运行前端
 docker run -d --name frontend -p 3000:80 \
-  registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest
+  crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
 
 # 访问 http://localhost:3000
 ```
@@ -237,12 +234,12 @@ docker rm frontend backend
 
 #### 1. 编辑提交文档
 
-打开 `docs/SUBMISSION_DOCUMENT.md`，填写以下信息：
+打开 `docs/SUBMISSION_DOCUMENT.md`，确认以下信息：
 
-- [ ] 学生姓名
-- [ ] 学号
-- [ ] 将所有 `[你的命名空间]` 替换为 `ai-web-planner`
-- [ ] 如果使用自己的 API Key，填写 Key 信息
+- [x] 学生姓名: 戴枭龙
+- [x] 学号: 522025720004
+- [x] 镜像地址已更新
+- [x] API Key 已填写
 
 #### 2. 转换为 PDF
 
@@ -293,22 +290,23 @@ docker rm frontend backend
 - [ ] 所有文档已更新
 
 ### Docker 镜像
-- [ ] 镜像已推送到阿里云
-- [ ] 前端镜像: `registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest`
-- [ ] 后端镜像: `registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest`
-- [ ] 镜像可以正常拉取
-- [ ] 镜像可以正常运行
-- [ ] 应用功能正常
+- [ ] 镜像已推送到阿里云 ⏳ **待完成**
+- [ ] 前端镜像: `crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest`
+- [ ] 后端镜像: `crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest`
+- [ ] 镜像可以正常拉取 ⏳ **待完成**
+- [ ] 镜像可以正常运行 ⏳ **待完成**
+- [ ] 应用功能正常 ⏳ **待完成**
 
 ### PDF 文档
-- [ ] PDF 已生成
-- [ ] 包含 GitHub 仓库地址
-- [ ] 包含 Docker 镜像地址
-- [ ] 包含运行说明
-- [ ] 包含 README 内容
-- [ ] 包含 API Key (如需要)
-- [ ] 格式正确，可读性好
-- [ ] 文件命名规范
+- [x] 提交文档已准备好 ✅ **已完成**
+- [x] 包含 GitHub 仓库地址 ✅ **已完成**
+- [x] 包含 Docker 镜像地址 ✅ **已完成**
+- [x] 包含运行说明 ✅ **已完成**
+- [x] 包含 README 内容 ✅ **已完成**
+- [x] 包含 API Key ✅ **已完成**
+- [x] 格式正确，可读性好 ✅ **已完成**
+- [ ] PDF 已生成 ⏳ **待完成**
+- [ ] 文件命名规范 ⏳ **待完成**
 
 ---
 
@@ -373,10 +371,10 @@ docker rm frontend backend
 **A**:
 ```bash
 # 拉取镜像
-docker pull registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest
+docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
 
 # 运行测试
-docker run -p 3000:80 registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest
+docker run -p 3000:80 crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
 
 # 访问 http://localhost:3000
 # 确认应用正常显示

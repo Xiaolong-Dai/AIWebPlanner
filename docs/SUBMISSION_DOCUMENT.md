@@ -7,9 +7,9 @@
 | 项目 | 内容 |
 |------|------|
 | **项目名称** | AI Web Planner - 智能旅行规划 Web 应用 |
-| **学生姓名** | [请填写你的姓名] |
-| **学号** | [请填写你的学号] |
-| **提交日期** | 2025-11-02 |
+| **学生姓名** | 戴枭龙 |
+| **学号** | 522025720004 |
+| **提交日期** | 2025-11-03 |
 | **GitHub 仓库** | https://github.com/Xiaolong-Dai/AIWebPlanner |
 
 ---
@@ -38,19 +38,18 @@ https://github.com/Xiaolong-Dai/AIWebPlanner
 
 | 服务 | 镜像地址 |
 |------|----------|
-| **前端应用** | `registry.cn-hangzhou.aliyuncs.com/[你的命名空间]/frontend:latest` |
-| **后端代理** | `registry.cn-hangzhou.aliyuncs.com/[你的命名空间]/backend:latest` |
+| **前端应用** | `crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest` |
+| **后端代理** | `crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest` |
 
-> **注意**: 请将 `[你的命名空间]` 替换为你在阿里云创建的实际命名空间名称
 
 ### 拉取镜像
 
 ```bash
 # 拉取前端镜像
-docker pull registry.cn-hangzhou.aliyuncs.com/[你的命名空间]/frontend:latest
+docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
 
 # 拉取后端镜像
-docker pull registry.cn-hangzhou.aliyuncs.com/[你的命名空间]/backend:latest
+docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 ```
 
 ### 运行镜像
@@ -65,7 +64,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/[你的命名空间]/backend:lates
 services:
   # 后端代理服务
   backend:
-    image: registry.cn-hangzhou.aliyuncs.com/[你的命名空间]/backend:latest
+    image: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
     container_name: ai-web-planner-backend
     ports:
       - "3001:3001"
@@ -78,7 +77,7 @@ services:
 
   # 前端应用
   frontend:
-    image: registry.cn-hangzhou.aliyuncs.com/[你的命名空间]/frontend:latest
+    image: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
     container_name: ai-web-planner-frontend
     ports:
       - "3000:80"
@@ -163,8 +162,8 @@ docker run -d \
 #### 1. Supabase (数据库 - 必需)
 
 ```
-VITE_SUPABASE_URL=[请填写你的 Supabase URL]
-VITE_SUPABASE_ANON_KEY=[请填写你的 Supabase Key]
+VITE_SUPABASE_URL=https://blghnzrjwbmkkopvxfyo.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsZ2huenJqd2Jta2tvcHZ4ZnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NzU3MDIsImV4cCI6MjA3NzA1MTcwMn0.vI-IhKARaafxfwtfayXRh1HLhUUFHMHkmlcKRY9gm8U
 ```
 
 **获取方式**:
@@ -177,7 +176,7 @@ VITE_SUPABASE_ANON_KEY=[请填写你的 Supabase Key]
 #### 2. 高德地图 (地图服务 - 必需)
 
 ```
-VITE_AMAP_KEY=[请填写你的高德地图 Key]
+VITE_AMAP_KEY=4760097a9ac4d94d0295fff44f39b8dd
 ```
 
 **获取方式**:
@@ -190,8 +189,8 @@ VITE_AMAP_KEY=[请填写你的高德地图 Key]
 #### 3. 阿里云百炼 (AI 服务 - 推荐)
 
 ```
-VITE_ALIYUN_LLM_API_KEY=[请填写你的阿里云 API Key]
-VITE_ALIYUN_LLM_ENDPOINT=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+VITE_ALIYUN_LLM_API_KEY=sk-3a6fcd7c0b04482d8bc3596725520d18
+VITE_ALIYUN_LLM_ENDPOINT=https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
 ```
 
 **获取方式**:
@@ -206,9 +205,9 @@ VITE_ALIYUN_LLM_ENDPOINT=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/
 #### 4. 科大讯飞 (语音识别 - 可选)
 
 ```
-VITE_XFEI_APP_ID=[你的 APPID]
-VITE_XFEI_API_KEY=[你的 APIKey]
-VITE_XFEI_API_SECRET=[你的 APISecret]
+VITE_XFEI_APP_ID=81268405
+VITE_XFEI_API_KEY=89c8b4049d35aa7cf759d0120a860648
+VITE_XFEI_API_SECRET=YjU4OTBlOWEyOTkyZTgzMGY2ZjE3ZDg3
 ```
 
 **获取方式**:

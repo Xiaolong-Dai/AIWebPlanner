@@ -52,11 +52,12 @@
 
 ### 4. 记录信息
 
+**当前配置**:
 ```
-Registry 地址: registry.cn-hangzhou.aliyuncs.com
+Registry 地址: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com
 命名空间: ai-web-planner
-用户名: [你的阿里云账号]
-密码: [Registry 登录密码]
+前端镜像: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+后端镜像: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 ```
 
 ---
@@ -75,7 +76,7 @@ Registry 地址: registry.cn-hangzhou.aliyuncs.com
 
 | Name | Value |
 |------|-------|
-| `ALIYUN_REGISTRY` | `registry.cn-hangzhou.aliyuncs.com` |
+| `ALIYUN_REGISTRY` | `crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com` |
 | `ALIYUN_NAMESPACE` | `ai-web-planner` |
 | `ALIYUN_USERNAME` | 你的阿里云账号 |
 | `ALIYUN_PASSWORD` | Registry 登录密码 |
@@ -106,18 +107,18 @@ git push origin main
 
 ```bash
 # 登录阿里云
-docker login --username=你的阿里云账号 registry.cn-hangzhou.aliyuncs.com
+docker login --username=你的阿里云账号 crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com
 
 # 构建并推送前端
 cd frontend
-docker build -t registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest .
-docker push registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest
+docker build -t crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest .
+docker push crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
 cd ..
 
 # 构建并推送后端
 cd backend
-docker build -t registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest .
-docker push registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest
+docker build -t crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest .
+docker push crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 cd ..
 ```
 
@@ -135,11 +136,11 @@ code docs/SUBMISSION_DOCUMENT.md
 notepad docs/SUBMISSION_DOCUMENT.md
 ```
 
-**需要填写的内容**:
-- [ ] 学生姓名
-- [ ] 学号
-- [ ] 命名空间名称 (替换 `[你的命名空间]`)
-- [ ] API Key (如果使用自己的)
+**需要确认的内容**:
+- [x] 学生姓名: 戴枭龙
+- [x] 学号: 522025720004
+- [x] 镜像地址已更新
+- [x] API Key 已填写
 
 ### 2. 转换为 PDF
 
@@ -175,17 +176,17 @@ notepad docs/SUBMISSION_DOCUMENT.md
 
 ```bash
 # 拉取镜像
-docker pull registry.cn-hangzhou.aliyuncs.com/ai-web-planner/frontend:latest
-docker pull registry.cn-hangzhou.aliyuncs.com/ai-web-planner/backend:latest
+docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 
 # 运行测试
-docker-compose up -d
+docker-compose -f docker-compose.aliyun.yml up -d
 
 # 访问 http://localhost:3000
 # 确认应用正常运行
 
 # 停止
-docker-compose down
+docker-compose -f docker-compose.aliyun.yml down
 ```
 
 ### 2. 验证 GitHub 仓库
