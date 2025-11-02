@@ -55,6 +55,25 @@ export const useApiConfigStore = create<ApiConfigState>()(
     }),
     {
       name: STORAGE_KEYS.API_CONFIG,
+      // 合并策略：localStorage 中的值优先，但如果为空则使用环境变量
+      merge: (persistedState: any, currentState: ApiConfigState) => {
+        const merged = { ...currentState };
+        if (persistedState && persistedState.config) {
+          // 对每个配置项，如果 localStorage 中有值则使用，否则使用环境变量
+          merged.config = {
+            supabase_url: persistedState.config.supabase_url || defaultConfig.supabase_url,
+            supabase_key: persistedState.config.supabase_key || defaultConfig.supabase_key,
+            xfei_app_id: persistedState.config.xfei_app_id || defaultConfig.xfei_app_id,
+            xfei_api_key: persistedState.config.xfei_api_key || defaultConfig.xfei_api_key,
+            xfei_api_secret: persistedState.config.xfei_api_secret || defaultConfig.xfei_api_secret,
+            amap_key: persistedState.config.amap_key || defaultConfig.amap_key,
+            amap_secret: persistedState.config.amap_secret || defaultConfig.amap_secret,
+            llm_api_key: persistedState.config.llm_api_key || defaultConfig.llm_api_key,
+            llm_endpoint: persistedState.config.llm_endpoint || defaultConfig.llm_endpoint,
+          };
+        }
+        return merged;
+      },
     }
   )
 );
