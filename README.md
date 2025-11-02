@@ -41,7 +41,45 @@ AI Web Planner 是一款基于人工智能的智能旅行规划应用，旨在�
 
 ## 🚀 快速开始
 
-### 方式一: Linux虚拟机部署（推荐 - 生产环境）
+> **📚 完整部署文档**:
+> - [⚡ 5分钟快速部署](docs/QUICK_DEPLOY_GUIDE.md) - Vercel 一键部署
+> - [📖 完整部署指南](docs/COMPLETE_DEPLOYMENT_GUIDE.md) - 包含所有部署方案
+> - [✅ 部署检查清单](docs/DEPLOYMENT_CHECKLIST_2025.md) - 确保部署成功
+
+---
+
+### 方式一: Vercel 部署（推荐 - 最简单）
+
+**优势**:
+- ✅ 完全免费
+- ✅ 自动部署 (每次 push 自动更新)
+- ✅ 全球 CDN (访问速度快)
+- ✅ 5 分钟上线
+
+**快速步骤**:
+
+1. **推送代码到 GitHub**
+   ```bash
+   git push origin main
+   ```
+
+2. **连接 Vercel**
+   - 访问 https://vercel.com
+   - 用 GitHub 登录
+   - 导入你的仓库
+
+3. **配置环境变量**
+   - 添加 Supabase、高德地图、阿里云等 API 密钥
+   - 点击 Deploy
+
+4. **访问应用**
+   - 获得 `https://你的项目名.vercel.app` 域名
+
+**详细教程**: [5分钟快速部署指南](docs/QUICK_DEPLOY_GUIDE.md)
+
+---
+
+### 方式二: Linux虚拟机部署（生产环境）
 
 #### 快速部署（10分钟）
 
@@ -108,7 +146,7 @@ bash docker-deploy.sh
 
 ---
 
-### 方式三: 本地开发
+### 方式四: 本地开发
 
 #### 前置要求
 
