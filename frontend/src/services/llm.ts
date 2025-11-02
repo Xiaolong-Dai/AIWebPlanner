@@ -232,7 +232,7 @@ export const generateTravelPlan = async (params: {
   const systemPrompt = `你是一个专业的旅行规划助手，拥有丰富的旅游经验和地理知识。请根据用户需求生成详细、实用、可执行的旅行计划。
 
 📋 核心要求：
-1. 必须直接返回纯 JSON 对象，不要包含任何 markdown 标记（如 \`\`\`json）
+1. 必须直接返回纯 JSON 对象，不要包含任何 markdown 标记（如 \`\`\`json\`)
 2. 不要对 JSON 进行转义，直接返回原始 JSON 对象
 3. JSON 中的字符串值可以包含中文，但不要使用转义的引号
 4. 包含每日详细行程，精确到小时级别
@@ -813,6 +813,8 @@ ${params.departureCity ? `
 6. 请使用真实的地理坐标，可以参考知名地标的实际位置
 7. 交通费用必须是数字类型，步行为0，地铁2-5元，公交1-2元，出租车起步价13元`;
 
+  let jsonStr = ''; // 初始化变量，避免未定义错误
+
   try {
     console.log('🚀 开始调用 AI 生成行程...');
     const response = await callLLM(userPrompt, systemPrompt);
@@ -822,8 +824,8 @@ ${params.departureCity ? `
     console.log('📍 用户指定的景点:', specificAttractions);
     console.log('📄 AI响应前300字符:', response.substring(0, 300));
 
-    // 移除可能的 markdown 代码块标记
-    let jsonStr = response.trim();
+    // 移除可能的代码块标记
+    jsonStr = response.trim();
     if (jsonStr.startsWith('```json')) {
       jsonStr = jsonStr.replace(/^```json\s*/g, '').replace(/\s*```$/g, '');
     } else if (jsonStr.startsWith('```')) {
@@ -917,7 +919,7 @@ ${params.departureCity ? `
         travelers: params.travelers,
         preferences: params.preferences,
       };
-    } catch (parseError) {
+    } catch (parseError: any) {
       console.warn('首次 JSON 解析失败，尝试修复...', parseError);
 
       // 尝试多种修复策略
