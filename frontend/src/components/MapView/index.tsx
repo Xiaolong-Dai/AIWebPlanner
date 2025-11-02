@@ -278,10 +278,10 @@ const MapView: React.FC<MapViewProps> = ({
           const infoWindow = new window.AMap.InfoWindow({
             content: `
               <div style="padding: 12px; min-width: 200px;">
-                <h4 style="margin: 0 0 8px 0; color: ${style.color};">${style.icon} ${day.accommodation.name}</h4>
-                <p style="margin: 4px 0; color: #666; font-size: 12px;">📍 ${day.accommodation.address}</p>
-                ${day.accommodation.price_per_night ? `<p style="margin: 4px 0; color: #ff4d4f; font-size: 12px;">💰 ¥${day.accommodation.price_per_night}/晚</p>` : ''}
-                ${day.accommodation.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 12px;">⭐ ${day.accommodation.rating}分</p>` : ''}
+                <h4 style="margin: 0 0 8px 0; color: ${style.color};">${style.icon} ${day.accommodation?.name || '住宿'}</h4>
+                <p style="margin: 4px 0; color: #666; font-size: 12px;">📍 ${day.accommodation?.address || '地址未知'}</p>
+                ${day.accommodation?.price_per_night ? `<p style="margin: 4px 0; color: #ff4d4f; font-size: 12px;">💰 ¥${day.accommodation.price_per_night}/晚</p>` : ''}
+                ${day.accommodation?.rating ? `<p style="margin: 4px 0; color: #faad14; font-size: 12px;">⭐ ${day.accommodation.rating}分</p>` : ''}
               </div>
             `,
           });
@@ -349,7 +349,7 @@ const MapView: React.FC<MapViewProps> = ({
 
             // 如果没有坐标,尝试从预设映射表中查找
             if (!fromCoords || !Array.isArray(fromCoords) || fromCoords.length !== 2) {
-              fromCoords = findTransportCoordinates(transport.from);
+              fromCoords = findTransportCoordinates(transport.from) ?? undefined;
             }
 
             if (fromCoords) {
@@ -414,7 +414,7 @@ const MapView: React.FC<MapViewProps> = ({
 
             // 如果没有坐标,尝试从预设映射表中查找
             if (!toCoords || !Array.isArray(toCoords) || toCoords.length !== 2) {
-              toCoords = findTransportCoordinates(transport.to);
+              toCoords = findTransportCoordinates(transport.to) ?? undefined;
             }
 
             if (toCoords) {

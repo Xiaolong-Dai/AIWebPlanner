@@ -75,10 +75,15 @@ export interface Transportation {
   type: 'flight' | 'train' | 'bus' | 'taxi' | 'subway' | 'walk';
   from: string;
   to: string;
+  from_coordinates?: [number, number]; // 出发地坐标 [经度, 纬度]
+  to_coordinates?: [number, number]; // 目的地坐标 [经度, 纬度]
   departure_time?: string;
   arrival_time?: string;
   price?: number;
-  duration?: number; // 分钟
+  duration?: string; // 时长描述,如"2小时30分钟"
+  flight_number?: string; // 航班号
+  train_number?: string; // 车次号
+  notes?: string; // 注意事项
   details?: string;
 }
 

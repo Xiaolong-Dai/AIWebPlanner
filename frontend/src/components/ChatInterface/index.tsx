@@ -113,12 +113,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       // 尝试从用户输入中提取所有信息
       const extractedInfo: TravelInfo = {
-        destination: extractDestination(currentInput),
-        startDate: extractStartDate(currentInput),
-        days: extractDays(currentInput),
-        budget: extractBudget(currentInput),
-        travelers: extractTravelers(currentInput),
-        departureCity: extractDepartureCity(currentInput),
+        destination: extractDestination(currentInput) ?? undefined,
+        startDate: extractStartDate(currentInput) ?? undefined,
+        days: extractDays(currentInput) ?? undefined,
+        budget: extractBudget(currentInput) ?? undefined,
+        travelers: extractTravelers(currentInput) ?? undefined,
+        departureCity: extractDepartureCity(currentInput) ?? undefined,
         preferences: extractPreferences(currentInput),
       };
 
