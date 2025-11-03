@@ -351,20 +351,33 @@ export const startSpeechRecognition = (
   onError?: (error: Error) => void
 ): SpeechRecognizer => {
   let fullText = '';
+  let currentSentence = ''; // 当前句子的临时结果
 
   const recognizer = new SpeechRecognizer({
     onResult: (result) => {
-      console.log('🎤 语音识别结果:', result);
+      console.log('🎤 语音识别结果:', {
+        text: result.text,
+        is_final: result.is_final,
+        confidence: result.confidence
+      });
 
-      // 实时更新识别结果
       if (result.text) {
         if (result.is_final) {
-          // 最终结果,追加到完整文本
+          // 最终结果：将当前句子追加到完整文本
           fullText += result.text;
-          console.log('✅ 最终识别文本:', fullText);
+          currentSentence = ''; // 清空当前句子
+          console.log('✅ 最终识别文本（累积）:', fullText);
+
+          // 回调完整文本
+          onResult(fullText);
+        } else {
+          // 临时结果：更新当前句子
+          currentSentence = result.text;
+          console.log('📝 临时识别文本:', currentSentence);
+
+          // 回调：完整文本 + 当前临时句子
+          onResult(fullText + currentSentence);
         }
-        // 无论是否最终结果,都回调给UI更新
-        onResult(result.is_final ? fullText : result.text);
       }
     },
     onError: (error) => {
@@ -374,7 +387,15 @@ export const startSpeechRecognition = (
       }
     },
     onEnd: () => {
-      console.log('🏁 语音识别结束，完整文本:', fullText);
+      console.log('🏁 语音识别结束');
+      console.log('   完整文本:', fullText);
+      console.log('   当前句子:', currentSentence);
+
+      // 如果还有未完成的句子，也加入到完整文本
+      if (currentSentence) {
+        fullText += currentSentence;
+      }
+
       if (fullText) {
         onResult(fullText);
       }
