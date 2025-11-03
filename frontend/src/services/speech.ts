@@ -363,10 +363,11 @@ export const startSpeechRecognition = (
 
       if (result.text) {
         if (result.is_final) {
-          // 最终结果：将当前句子追加到完整文本
-          fullText += result.text;
+          // 最终结果：将当前句子和最终结果（通常是标点）追加到完整文本
+          fullText += currentSentence + result.text;
           currentSentence = ''; // 清空当前句子
           console.log('✅ 最终识别文本（累积）:', fullText);
+          console.log('   当前句子:', currentSentence, '+ 最终结果:', result.text);
 
           // 回调完整文本
           onResult(fullText);
