@@ -92,6 +92,7 @@ docker network create ai-planner-network
 docker run -d `
   --name ai-web-planner-backend `
   --network ai-planner-network `
+  --network-alias backend `
   -p 3001:3001 `
   crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 
@@ -118,6 +119,7 @@ docker network create ai-planner-network
 docker run -d \
   --name ai-web-planner-backend \
   --network ai-planner-network \
+  --network-alias backend \
   -p 3001:3001 \
   crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
 
@@ -244,6 +246,7 @@ docker pull crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-pl
 docker run -d \
   --name ai-web-planner-backend \
   --network ai-planner-network \
+  --network-alias backend \
   -p 3001:3001 \
   -e NODE_ENV=production \
   -e PORT=3001 \
