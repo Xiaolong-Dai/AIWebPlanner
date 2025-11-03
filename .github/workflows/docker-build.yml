@@ -74,6 +74,16 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ steps.version.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ steps.version.outputs.date }}
             ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ steps.version.outputs.sha_short }}
+          build-args: |
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_AMAP_KEY=${{ secrets.VITE_AMAP_KEY }}
+            VITE_AMAP_SECRET=${{ secrets.VITE_AMAP_SECRET }}
+            VITE_ALIYUN_LLM_API_KEY=${{ secrets.VITE_ALIYUN_LLM_API_KEY }}
+            VITE_ALIYUN_LLM_ENDPOINT=${{ secrets.VITE_ALIYUN_LLM_ENDPOINT }}
+            VITE_XFEI_APP_ID=${{ secrets.VITE_XFEI_APP_ID }}
+            VITE_XFEI_API_KEY=${{ secrets.VITE_XFEI_API_KEY }}
+            VITE_XFEI_API_SECRET=${{ secrets.VITE_XFEI_API_SECRET }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
