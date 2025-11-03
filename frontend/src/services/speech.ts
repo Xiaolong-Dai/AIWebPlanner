@@ -69,6 +69,7 @@ export class SpeechRecognizer {
   private audioContext: AudioContext | null = null;
   private mediaStream: MediaStream | null = null;
   private processor: ScriptProcessorNode | null = null;
+  private sampleRate = 0; // 实际采样率
 
   constructor(config: SpeechConfig) {
     this.config = config;
@@ -92,6 +93,11 @@ export class SpeechRecognizer {
 
       // 创建音频上下文
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.sampleRate = this.audioContext.sampleRate;
+
+      console.log('🎤 [语音识别] AudioContext 采样率:', this.sampleRate, 'Hz');
+      console.log('🎤 [语音识别] 目标采样率: 16000 Hz');
+
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
 
       // 创建处理器
@@ -128,7 +134,7 @@ export class SpeechRecognizer {
 
       this.isRecording = true;
     } catch (error) {
-      console.error('启动录音失败:', error);
+      console.error('❌ [语音识别] 启动录音失败:', error);
       this.config.onError(error as Error);
       throw error;
     }
@@ -190,6 +196,8 @@ export class SpeechRecognizer {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
+          console.log('✅ [语音识别] WebSocket 连接成功');
+
           // 发送开始帧
           const params = {
             common: {
@@ -199,8 +207,11 @@ export class SpeechRecognizer {
               language: this.config.language || 'zh_cn',
               domain: 'iat',
               accent: this.config.accent || 'mandarin',
-              vad_eos: 5000,
-              dwa: 'wpgs',
+              vad_eos: 2000, // 优化：从 5000ms 降低到 2000ms，更快响应
+              dwa: 'wpgs', // 动态修正
+              pd: 'travel', // 领域：旅游
+              ptt: 1, // 开启标点
+              nunum: 1, // 将数字转为阿拉伯数字
             },
             data: {
               status: 0,
@@ -210,6 +221,7 @@ export class SpeechRecognizer {
             },
           };
 
+          console.log('📤 [语音识别] 发送配置参数:', params.business);
           this.ws!.send(JSON.stringify(params));
           resolve();
         };
@@ -219,6 +231,7 @@ export class SpeechRecognizer {
             const data = JSON.parse(event.data);
 
             if (data.code !== 0) {
+              console.error('❌ [语音识别] 识别错误:', data.message, '错误码:', data.code);
               this.config.onError(new Error(`识别错误: ${data.message}`));
               return;
             }
@@ -229,18 +242,34 @@ export class SpeechRecognizer {
                 .map((w: any) => w.cw.map((c: any) => c.w).join(''))
                 .join('');
 
+              // 计算平均置信度
+              const confidences = result.ws.flatMap((w: any) =>
+                w.cw.map((c: any) => c.wp || 0)
+              );
+              const avgConfidence = confidences.length > 0
+                ? confidences.reduce((a: number, b: number) => a + b, 0) / confidences.length
+                : 0;
+
+              console.log('📝 [语音识别] 识别结果:', {
+                text,
+                confidence: avgConfidence,
+                is_final: data.data.status === 2,
+                raw_result: result
+              });
+
               this.config.onResult({
                 text,
-                confidence: result.ws[0]?.cw[0]?.wp || 0,
+                confidence: avgConfidence,
                 is_final: data.data.status === 2,
               });
             }
 
             if (data.data && data.data.status === 2) {
+              console.log('🏁 [语音识别] 识别完成');
               this.config.onEnd();
             }
           } catch (error) {
-            console.error('解析识别结果失败:', error);
+            console.error('❌ [语音识别] 解析识别结果失败:', error);
             this.config.onError(error as Error);
           }
         };
@@ -261,14 +290,43 @@ export class SpeechRecognizer {
   }
 
   /**
-   * 转换为 PCM 格式
+   * 转换为 PCM 格式并重采样到 16000Hz
    */
   private convertToPCM(input: Float32Array): ArrayBuffer {
-    const output = new Int16Array(input.length);
-    for (let i = 0; i < input.length; i++) {
-      const s = Math.max(-1, Math.min(1, input[i]));
+    const targetSampleRate = 16000;
+    const sourceSampleRate = this.sampleRate;
+
+    // 如果采样率不同，需要重采样
+    let resampledData: Float32Array;
+    if (sourceSampleRate !== targetSampleRate) {
+      const sampleRateRatio = sourceSampleRate / targetSampleRate;
+      const newLength = Math.round(input.length / sampleRateRatio);
+      resampledData = new Float32Array(newLength);
+
+      for (let i = 0; i < newLength; i++) {
+        const srcIndex = i * sampleRateRatio;
+        const srcIndexInt = Math.floor(srcIndex);
+        const srcIndexFrac = srcIndex - srcIndexInt;
+
+        // 线性插值
+        if (srcIndexInt + 1 < input.length) {
+          resampledData[i] = input[srcIndexInt] * (1 - srcIndexFrac) +
+                            input[srcIndexInt + 1] * srcIndexFrac;
+        } else {
+          resampledData[i] = input[srcIndexInt];
+        }
+      }
+    } else {
+      resampledData = input;
+    }
+
+    // 转换为 16 位 PCM
+    const output = new Int16Array(resampledData.length);
+    for (let i = 0; i < resampledData.length; i++) {
+      const s = Math.max(-1, Math.min(1, resampledData[i]));
       output[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
     }
+
     return output.buffer;
   }
 
