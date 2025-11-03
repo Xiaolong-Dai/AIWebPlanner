@@ -61,7 +61,7 @@ $configStatus = @(
 )
 
 foreach ($config in $configStatus) {
-    $status = if ($config.Value) { "已配置 ✅" } else { "未配置 ❌" }
+    $status = if ($config.Value) { "OK" } else { "MISSING" }
     $color = if ($config.Value) { "Green" } else { "Red" }
     Write-Host "  $($config.Name): $status" -ForegroundColor $color
 }
