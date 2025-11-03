@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Web Planner - 项目提交文档</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11pt;
+        }
+        
+        h1 {
+            color: #1890ff;
+            border-bottom: 3px solid #1890ff;
+            padding-bottom: 10px;
+            margin-top: 30px;
+            font-size: 24pt;
+        }
+        
+        h2 {
+            color: #1890ff;
+            border-bottom: 2px solid #e8e8e8;
+            padding-bottom: 8px;
+            margin-top: 25px;
+            font-size: 18pt;
+        }
+        
+        h3 {
+            color: #333;
+            margin-top: 20px;
+            font-size: 14pt;
+        }
+        
+        h4 {
+            color: #666;
+            margin-top: 15px;
+            font-size: 12pt;
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 10pt;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #1890ff;
+            font-size: 9pt;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        a {
+            color: #1890ff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .info-box {
+            background-color: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background-color: #fff7e6;
+            border-left: 4px solid #faad14;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background-color: #f6ffed;
+            border-left: 4px solid #52c41a;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            border: 1px solid #e8e8e8;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #fafafa;
+            font-weight: bold;
+        }
+        
+        .cover-page {
+            text-align: center;
+            padding: 100px 0;
+            page-break-after: always;
+        }
+        
+        .cover-title {
+            font-size: 36pt;
+            color: #1890ff;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        
+        .cover-subtitle {
+            font-size: 18pt;
+            color: #666;
+            margin-bottom: 50px;
+        }
+        
+        .cover-info {
+            font-size: 14pt;
+            color: #333;
+            line-height: 2;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 封面页 -->
+    <div class="cover-page">
+        <div class="cover-title">AI Web Planner</div>
+        <div class="cover-subtitle">智能旅行规划 Web 应用 - 项目提交文档</div>
+        <div class="cover-info">
+            <p><strong>GitHub 仓库</strong>: <a href="https://github.com/Xiaolong-Dai/AIWebPlanner">https://github.com/Xiaolong-Dai/AIWebPlanner</a></p>
+            <p><strong>作者</strong>: Xiaolong Dai</p>
+            <p><strong>提交日期</strong>: 2025-11-03</p>
+        </div>
+    </div>
+
+    <!-- 打印按钮 -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background-color: #1890ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+            打印/保存为 PDF
+        </button>
+    </div>
+
+    <!-- 正文内容 -->
+    <h1>📋 项目信息</h1>
+    
+    <table>
+        <tr>
+            <th>项目名称</th>
+            <td>AI Web Planner - 智能旅行规划 Web 应用</td>
+        </tr>
+        <tr>
+            <th>GitHub 仓库</th>
+            <td><a href="https://github.com/Xiaolong-Dai/AIWebPlanner">https://github.com/Xiaolong-Dai/AIWebPlanner</a></td>
+        </tr>
+        <tr>
+            <th>作者</th>
+            <td>Xiaolong Dai</td>
+        </tr>
+        <tr>
+            <th>提交日期</th>
+            <td>2025-11-03</td>
+        </tr>
+    </table>
+
+    <h1>🎯 项目简介</h1>
+    
+    <p>AI Web Planner 是一款基于人工智能的智能旅行规划应用，通过 AI 理解用户需求，自动生成详细旅行路线和预算建议。</p>
+
+    <h2>核心功能</h2>
+    
+    <ol>
+        <li>
+            <strong>智能行程规划</strong>
+            <ul>
+                <li>支持语音和文字输入旅行需求</li>
+                <li>AI 自动生成详细的每日行程安排</li>
+                <li>包含交通、住宿、景点、餐厅推荐</li>
+                <li>地图可视化展示行程路线</li>
+            </ul>
+        </li>
+        <li>
+            <strong>费用预算管理</strong>
+            <ul>
+                <li>AI 自动分解预算到各个类别</li>
+                <li>支持语音录入费用</li>
+                <li>实时预算追踪和统计</li>
+                <li>三级预算预警系统（80%/90%/100%）</li>
+            </ul>
+        </li>
+        <li>
+            <strong>用户管理与数据同步</strong>
+            <ul>
+                <li>用户注册/登录认证</li>
+                <li>多设备云端数据同步</li>
+                <li>保存和管理多份旅行计划</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="page-break"></div>
+
+    <h1>🛠️ 技术栈</h1>
+    
+    <h3>前端</h3>
+    <ul>
+        <li>React 19 + TypeScript</li>
+        <li>Vite 7</li>
+        <li>Ant Design 5</li>
+        <li>Zustand (状态管理)</li>
+        <li>高德地图 API (地图可视化)</li>
+        <li>科大讯飞 API (语音识别)</li>
+    </ul>
+
+    <h3>后端</h3>
+    <ul>
+        <li>Node.js + Express (API 代理服务)</li>
+        <li>Supabase (认证 + PostgreSQL 数据库)</li>
+        <li>阿里云通义千问 (AI 大语言模型)</li>
+    </ul>
+
+    <h3>部署</h3>
+    <ul>
+        <li>Docker + Docker Compose</li>
+        <li>GitHub Actions (CI/CD)</li>
+        <li>阿里云容器镜像服务</li>
+    </ul>
+
+    <h1>🐳 Docker 镜像部署指南</h1>
+    
+    <h2>📦 镜像信息</h2>
+    
+    <div class="info-box">
+        <p><strong>阿里云镜像仓库地址</strong>:</p>
+        <ul>
+            <li><strong>前端镜像</strong>: <code>crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest</code></li>
+            <li><strong>后端镜像</strong>: <code>crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest</code></li>
+        </ul>
+    </div>
+
+    <div class="success-box">
+        <p><strong>镜像特点</strong>:</p>
+        <ul>
+            <li>✅ 已内置所有 API 密钥（阿里云百炼、高德地图、科大讯飞、Supabase）</li>
+            <li>✅ 开箱即用，无需额外配置</li>
+            <li>✅ 通过 GitHub Actions 自动构建和推送</li>
+            <li>✅ 支持 Windows、macOS、Linux 系统</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>🚀 快速部署（5分钟）</h2>
+    
+    <h3>前置要求</h3>
+    
+    <ol>
+        <li><strong>安装 Docker</strong>
+            <ul>
+                <li>Windows: <a href="https://docs.docker.com/desktop/install/windows-install/">https://docs.docker.com/desktop/install/windows-install/</a></li>
+                <li>macOS: <a href="https://docs.docker.com/desktop/install/mac-install/">https://docs.docker.com/desktop/install/mac-install/</a></li>
+                <li>Linux: <a href="https://docs.docker.com/engine/install/">https://docs.docker.com/engine/install/</a></li>
+            </ul>
+        </li>
+        <li><strong>验证安装</strong>
+            <pre><code>docker --version
+docker-compose --version</code></pre>
+        </li>
+    </ol>
+
+    <h3>方式一: 使用 Docker Compose 部署（推荐）</h3>
+    
+    <p><strong>步骤 1: 创建部署目录</strong></p>
+    <pre><code>mkdir ai-web-planner-deploy
+cd ai-web-planner-deploy</code></pre>
+
+    <p><strong>步骤 2: 创建 docker-compose.yml 文件</strong></p>
+    <p>创建文件 <code>docker-compose.yml</code>，内容如下：</p>
+    <pre><code>version: '3.8'
+
+services:
+  backend:
+    image: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
+    container_name: ai-web-planner-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    restart: unless-stopped
+    networks:
+      - ai-planner-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    image: crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+    container_name: ai-web-planner-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ai-planner-network
+
+networks:
+  ai-planner-network:
+    driver: bridge</code></pre>
+
+    <p><strong>步骤 3: 启动应用</strong></p>
+    <pre><code># 拉取最新镜像
+docker-compose pull
+
+# 启动服务
+docker-compose up -d
+
+# 查看运行状态
+docker-compose ps</code></pre>
+
+    <p><strong>步骤 4: 访问应用</strong></p>
+    <ul>
+        <li>前端应用: <a href="http://localhost:3000">http://localhost:3000</a></li>
+        <li>后端 API: <a href="http://localhost:3001/health">http://localhost:3001/health</a></li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h3>方式二: 手动部署（不使用 Docker Compose）</h3>
+    
+    <p><strong>Windows PowerShell:</strong></p>
+    <pre><code># 1. 创建网络
+docker network create ai-planner-network
+
+# 2. 启动后端服务
+docker run -d `
+  --name ai-web-planner-backend `
+  --network ai-planner-network `
+  --network-alias backend `
+  -p 3001:3001 `
+  crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
+
+# 3. 等待后端启动（约 10 秒）
+Start-Sleep -Seconds 10
+
+# 4. 启动前端服务
+docker run -d `
+  --name ai-web-planner-frontend `
+  --network ai-planner-network `
+  -p 3000:80 `
+  crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+
+# 5. 打开浏览器
+Start-Process "http://localhost:3000"</code></pre>
+
+    <p><strong>Linux/macOS:</strong></p>
+    <pre><code># 1. 创建网络
+docker network create ai-planner-network
+
+# 2. 启动后端服务
+docker run -d \
+  --name ai-web-planner-backend \
+  --network ai-planner-network \
+  --network-alias backend \
+  -p 3001:3001 \
+  crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest
+
+# 3. 等待后端启动（约 10 秒）
+sleep 10
+
+# 4. 启动前端服务
+docker run -d \
+  --name ai-web-planner-frontend \
+  --network ai-planner-network \
+  -p 3000:80 \
+  crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+
+# 5. 打开浏览器访问
+# http://localhost:3000</code></pre>
+
+    <div class="page-break"></div>
+
+    <h2>✅ 验证部署</h2>
+    
+    <p><strong>1. 检查容器状态</strong></p>
+    <pre><code>docker ps</code></pre>
+    <p>应该看到两个容器都在运行：</p>
+    <ul>
+        <li><code>ai-web-planner-backend</code> (端口 3001)</li>
+        <li><code>ai-web-planner-frontend</code> (端口 3000)</li>
+    </ul>
+
+    <p><strong>2. 测试后端 API</strong></p>
+    <pre><code>curl http://localhost:3001/health</code></pre>
+    <p>应该返回：</p>
+    <pre><code>{"status":"ok","message":"代理服务器运行正常"}</code></pre>
+
+    <p><strong>3. 测试前端访问</strong></p>
+    <p>打开浏览器访问 <a href="http://localhost:3000">http://localhost:3000</a>，应该能看到应用首页。</p>
+
+    <h2>🧪 功能测试</h2>
+    
+    <h4>1. 用户注册/登录</h4>
+    <ul>
+        <li>访问 <a href="http://localhost:3000">http://localhost:3000</a></li>
+        <li>点击"注册"，输入邮箱和密码</li>
+        <li>查收验证邮件并完成验证</li>
+        <li>登录系统</li>
+    </ul>
+
+    <h4>2. 语音识别测试</h4>
+    <ul>
+        <li>进入"创建行程"页面</li>
+        <li>点击语音输入按钮（麦克风图标）</li>
+        <li>说话测试（例如："我想去日本旅游，5天，预算1万元"）</li>
+        <li>应该能看到语音转文字的结果</li>
+    </ul>
+
+    <h4>3. AI 生成行程测试</h4>
+    <ul>
+        <li>输入旅行需求（文字或语音）
+            <ul>
+                <li>目的地：日本</li>
+                <li>天数：5天</li>
+                <li>预算：10000元</li>
+                <li>偏好：美食、动漫</li>
+            </ul>
+        </li>
+        <li>点击"生成行程"按钮</li>
+        <li>等待 5-10 秒，应该能看到详细的行程计划</li>
+        <li>地图上会显示行程路线和景点标记</li>
+    </ul>
+
+    <h4>4. 预算管理测试</h4>
+    <ul>
+        <li>进入"预算管理"页面</li>
+        <li>点击"添加费用"</li>
+        <li>输入费用信息（支持语音输入）</li>
+        <li>查看预算统计图表</li>
+        <li>测试预算预警功能（当支出超过 80% 时会有提示）</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>🛑 停止和清理</h2>
+    
+    <p><strong>停止应用（使用 Docker Compose）:</strong></p>
+    <pre><code>docker-compose down</code></pre>
+
+    <p><strong>停止应用（手动部署）:</strong></p>
+    <pre><code>docker stop ai-web-planner-frontend ai-web-planner-backend
+docker rm ai-web-planner-frontend ai-web-planner-backend
+docker network rm ai-planner-network</code></pre>
+
+    <p><strong>删除镜像（可选）:</strong></p>
+    <pre><code>docker rmi crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest
+docker rmi crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest</code></pre>
+
+    <h1>🔑 API 密钥说明</h1>
+    
+    <div class="warning-box">
+        <p><strong>本项目使用的 API 密钥已内置在 Docker 镜像中，无需额外配置。</strong></p>
+    </div>
+
+    <h3>使用的 API 服务</h3>
+    
+    <ol>
+        <li>
+            <strong>阿里云百炼平台（AI 大语言模型）</strong>
+            <ul>
+                <li>模型：Qwen-Plus</li>
+                <li>用途：生成旅行行程规划</li>
+                <li><strong>密钥有效期</strong>: 至少 3 个月（至 2026-02-03）</li>
+            </ul>
+        </li>
+        <li>
+            <strong>高德地图 API</strong>
+            <ul>
+                <li>用途：地图展示、地理编码、路线规划</li>
+                <li><strong>密钥有效期</strong>: 长期有效</li>
+            </ul>
+        </li>
+        <li>
+            <strong>科大讯飞语音识别 API</strong>
+            <ul>
+                <li>用途：实时语音转文字</li>
+                <li><strong>密钥有效期</strong>: 长期有效</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Supabase</strong>
+            <ul>
+                <li>用途：用户认证、数据库存储</li>
+                <li><strong>密钥有效期</strong>: 长期有效</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="info-box">
+        <p><strong>注意</strong>: 所有 API 密钥均已通过 GitHub Actions 在构建时注入到 Docker 镜像中，确保应用开箱即用。</p>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h1>📊 GitHub 提交记录</h1>
+    
+    <p>本项目保留了完整的 Git 提交历史，记录了从项目初始化到最终完成的所有开发过程。</p>
+
+    <p><strong>查看提交记录</strong>:</p>
+    <ul>
+        <li>GitHub 网页: <a href="https://github.com/Xiaolong-Dai/AIWebPlanner/commits/main">https://github.com/Xiaolong-Dai/AIWebPlanner/commits/main</a></li>
+        <li>命令行: <code>git log --oneline</code></li>
+    </ul>
+
+    <p><strong>主要开发里程碑</strong>:</p>
+    <ol>
+        <li>项目初始化和基础框架搭建</li>
+        <li>用户认证功能实现</li>
+        <li>语音识别集成</li>
+        <li>AI 行程规划核心功能</li>
+        <li>地图可视化实现</li>
+        <li>预算管理功能</li>
+        <li>Docker 容器化部署</li>
+        <li>GitHub Actions CI/CD 配置</li>
+        <li>阿里云镜像仓库集成</li>
+        <li>文档完善和优化</li>
+    </ol>
+
+    <h1>📚 详细文档</h1>
+    
+    <p>项目包含完整的文档，位于 <code>docs/</code> 目录：</p>
+    
+    <ul>
+        <li><strong><a href="https://github.com/Xiaolong-Dai/AIWebPlanner/blob/main/docs/DOCKER_DEPLOYMENT.md">Docker 部署指南</a></strong>: 详细的 Docker 部署说明</li>
+        <li><strong><a href="https://github.com/Xiaolong-Dai/AIWebPlanner/blob/main/docs/GITHUB_SECRETS_SETUP.md">GitHub Secrets 配置</a></strong>: CI/CD 配置指南</li>
+        <li><strong><a href="https://github.com/Xiaolong-Dai/AIWebPlanner/blob/main/docs/USER_MANUAL.md">用户使用手册</a></strong>: 应用功能和使用说明</li>
+        <li><strong><a href="https://github.com/Xiaolong-Dai/AIWebPlanner/blob/main/docs/TROUBLESHOOTING.md">故障排除指南</a></strong>: 常见问题解决方案</li>
+        <li><strong><a href="https://github.com/Xiaolong-Dai/AIWebPlanner/blob/main/docs/SETUP.md">项目设置指南</a></strong>: 本地开发环境配置</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h1>🏗️ 项目架构</h1>
+    
+    <pre style="font-size: 8pt; line-height: 1.4;">
+┌─────────────────────────────────────────────────────────────┐
+│                         用户浏览器                            │
+│                    http://localhost:3000                     │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    前端容器 (Nginx + React)                   │
+│         ai-web-planner-frontend:latest (端口 80)             │
+│                                                               │
+│  - React 19 应用                                              │
+│  - 高德地图集成                                               │
+│  - 科大讯飞语音识别                                           │
+│  - 内置 API 密钥                                              │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         │ /api/* 请求
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  后端容器 (Node.js + Express)                 │
+│        ai-web-planner-backend:latest (端口 3001)             │
+│                                                               │
+│  - API 代理服务                                               │
+│  - 阿里云百炼 API 调用                                        │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      第三方服务                               │
+│                                                               │
+│  - Supabase (认证 + 数据库)                                   │
+│  - 阿里云百炼 (AI 模型)                                       │
+│  - 高德地图 API                                               │
+│  - 科大讯飞 API                                               │
+└─────────────────────────────────────────────────────────────┘
+    </pre>
+
+    <h1>🎓 总结</h1>
+    
+    <p>本项目实现了一个完整的智能旅行规划 Web 应用，具有以下特点：</p>
+    
+    <ol>
+        <li><strong>功能完整</strong>: 实现了智能行程规划、预算管理、用户认证等核心功能</li>
+        <li><strong>技术先进</strong>: 使用 React 19、TypeScript、AI 大语言模型等现代技术</li>
+        <li><strong>部署便捷</strong>: 通过 Docker 容器化部署，开箱即用</li>
+        <li><strong>CI/CD 自动化</strong>: 使用 GitHub Actions 自动构建和推送镜像</li>
+        <li><strong>文档完善</strong>: 提供详细的部署和使用文档</li>
+    </ol>
+
+    <div class="success-box">
+        <p><strong>GitHub 仓库</strong>: <a href="https://github.com/Xiaolong-Dai/AIWebPlanner">https://github.com/Xiaolong-Dai/AIWebPlanner</a></p>
+        
+        <p><strong>Docker 镜像</strong>:</p>
+        <ul>
+            <li>前端: <code>crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/frontend:latest</code></li>
+            <li>后端: <code>crpi-6zoy4d1jjyh0za6c.cn-hangzhou.personal.cr.aliyuncs.com/ai-web-planner/backend:latest</code></li>
+        </ul>
+    </div>
+
+    <hr style="margin: 40px 0; border: none; border-top: 2px solid #e8e8e8;">
+    
+    <p style="text-align: center; font-size: 16pt; color: #1890ff; font-weight: bold;">感谢您的审阅！🎉</p>
+</body>
+</html>
+
