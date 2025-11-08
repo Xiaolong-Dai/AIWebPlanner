@@ -349,38 +349,36 @@ const Budget = () => {
 
     console.log('📋 准备更新表单字段:', updates);
 
-    // 先关闭语音输入界面
+    // 先关闭语音输入界面（现在 Form 不会被卸载，只是隐藏）
     setShowVoiceInput(false);
     setVoiceInputField(null);
 
-    // 使用 setTimeout 确保状态更新后再更新表单
-    setTimeout(() => {
-      try {
-        // 更新表单
-        form.setFieldsValue(updates);
-        console.log('✅ 表单字段更新成功');
+    // 立即更新表单（Form 组件仍然存在，只是被隐藏了）
+    try {
+      form.setFieldsValue(updates);
+      console.log('✅ 表单字段更新成功');
 
-        // 验证表单字段是否真的更新了
-        const currentValues = form.getFieldsValue();
-        console.log('📊 当前表单值:', currentValues);
+      // 验证表单字段是否真的更新了
+      const currentValues = form.getFieldsValue();
+      console.log('📊 当前表单值:', currentValues);
 
-        // 显示成功消息
-        message.success({
-          content: (
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
-              {messages.map((msg, index) => (
-                <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
-              ))}
-            </div>
-          ),
-          duration: 3,
-        });
-      } catch (error) {
-        console.error('❌ 表单更新失败:', error);
-        message.error('表单更新失败，请重试');
-      }
-    }, 100);
+      // 显示成功消息
+      message.success({
+        content: (
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
+            {messages.map((msg, index) => (
+              <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
+            ))}
+          </div>
+        ),
+        duration: 3,
+      });
+
+    } catch (error) {
+      console.error('❌ 表单更新失败:', error);
+      message.error('表单更新失败，请重试');
+    }
   };
 
   // 测试解析功能（仅开发环境）
@@ -1200,7 +1198,8 @@ const Budget = () => {
             }
           }}
         >
-          {showVoiceInput ? (
+          {/* 语音输入组件 */}
+          {showVoiceInput && (
             <VoiceInput
               onResult={handleVoiceResult}
               onCancel={() => {
@@ -1208,7 +1207,10 @@ const Budget = () => {
                 setVoiceInputField(null);
               }}
             />
-          ) : (
+          )}
+
+          {/* 表单组件 - 始终渲染，用 display 控制显示 */}
+          <div style={{ display: showVoiceInput ? 'none' : 'block' }}>
             <Form form={form} layout="vertical">
               {/* 智能语音输入按钮 */}
               <Alert
@@ -1319,7 +1321,7 @@ const Budget = () => {
                 style={{ marginTop: 16 }}
               />
             </Form>
-          )}
+          </div>
         </Modal>
 
         {/* AI预算分析对话框 */}
