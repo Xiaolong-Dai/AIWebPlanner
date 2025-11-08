@@ -42,7 +42,21 @@ export const useApiConfigStore = create<ApiConfigState>()(
         set((state) => ({
           config: { ...state.config, ...newConfig },
         })),
-      clearConfig: () => set({ config: defaultConfig }),
+      clearConfig: () => {
+        // 真正清空所有配置（不使用环境变量）
+        const emptyConfig: ApiKeyConfig = {
+          supabase_url: '',
+          supabase_key: '',
+          xfei_app_id: '',
+          xfei_api_key: '',
+          xfei_api_secret: '',
+          amap_key: '',
+          amap_secret: '',
+          llm_api_key: '',
+          llm_endpoint: '',
+        };
+        set({ config: emptyConfig });
+      },
       isConfigured: () => {
         const { config } = get();
         return !!(

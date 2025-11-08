@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, message, Tabs, Alert, Space, Divider, Tag, Typography } from 'antd';
 import {
   KeyOutlined,
@@ -8,6 +8,7 @@ import {
   CheckCircleFilled,
   CloseCircleFilled,
   LoadingOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { useApiConfigStore } from '../store/apiConfigStore';
 import { resetSupabaseClient } from '../services/supabase';
@@ -20,6 +21,9 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
+  // 跟踪哪些字段正在编辑（显示输入框而不是掩码）
+  const [editingFields, setEditingFields] = useState<Record<string, boolean>>({});
+
   // 测试状态
   const [testResults, setTestResults] = useState<Record<string, 'idle' | 'testing' | 'success' | 'error'>>({
     supabase: 'idle',
@@ -28,15 +32,60 @@ const Settings = () => {
   });
   const [testOutputs, setTestOutputs] = useState<Record<string, any>>({});
 
+  // 密钥掩码函数 - 只显示前4位和后4位
+  const maskKey = (key?: string) => {
+    if (!key) return '';
+    if (key.length <= 8) return '****';
+    return `${key.substring(0, 4)}${'*'.repeat(Math.min(key.length - 8, 20))}${key.substring(key.length - 4)}`;
+  };
+
+  // 检查字段是否已配置
+  const isFieldConfigured = (fieldName: string) => {
+    const value = config[fieldName as keyof typeof config];
+    return value && value.length > 0 && !value.includes('your_');
+  };
+
+  // 切换字段编辑状态
+  const toggleFieldEdit = (fieldName: string) => {
+    const isEnteringEditMode = !editingFields[fieldName];
+
+    setEditingFields(prev => ({
+      ...prev,
+      [fieldName]: !prev[fieldName]
+    }));
+
+    // 进入编辑模式时，清空该字段的值（防止显示完整密钥）
+    if (isEnteringEditMode) {
+      form.setFieldValue(fieldName, '');
+    }
+  };
+
+  // 当配置更新时，重置编辑状态
+  useEffect(() => {
+    setEditingFields({});
+  }, [config]);
+
   const handleSave = async (values: Record<string, string>) => {
-    console.log('保存配置:', values);
     setLoading(true);
     try {
-      setConfig(values);
-      console.log('配置已更新到store');
+      // 过滤掉空值，只保存非空字段（防止误删除原有配置）
+      const filteredValues: Record<string, string> = {};
+      Object.keys(values).forEach(key => {
+        const value = values[key];
+        // 只保存非空字符串
+        if (value && value.trim() !== '') {
+          filteredValues[key] = value.trim();
+        }
+      });
+
+      // 合并到现有配置（保留未修改的字段）
+      setConfig(filteredValues);
+
       // 重置 Supabase 客户端以使用新配置
       resetSupabaseClient();
-      console.log('Supabase客户端已重置');
+
+      // 保存后重置编辑状态
+      setEditingFields({});
 
       message.success({
         content: (
@@ -50,15 +99,8 @@ const Settings = () => {
         ),
         duration: 5,
       });
-
-      // 打印当前配置状态
-      setTimeout(() => {
-        const currentConfig = useApiConfigStore.getState().config;
-        console.log('当前配置状态:', currentConfig);
-        console.log('LocalStorage:', localStorage.getItem('api-config'));
-      }, 100);
     } catch (error) {
-      console.error('保存配置失败:', error);
+      console.error('保存配置失败');
       message.error({
         content: (
           <div>
@@ -76,21 +118,49 @@ const Settings = () => {
     }
   };
 
-  const handleClear = () => {
-    clearConfig();
-    form.resetFields();
-    resetSupabaseClient();
+  // 清除指定字段的配置
+  const handleClearFields = (fields: string[], serviceName: string) => {
+    if (import.meta.env.DEV) {
+      console.log(`🗑️ 清除 ${serviceName} 配置`, fields);
+    }
+
+    // 构建要清空的字段对象
+    const clearValues: Record<string, string> = {};
+    fields.forEach(field => {
+      clearValues[field] = '';
+    });
+
+    // 更新配置（只清空指定字段）
+    setConfig(clearValues);
+
+    // 清空表单中的对应字段
+    form.setFieldsValue(clearValues);
+
+    // 重置这些字段的编辑状态
+    const newEditingFields = { ...editingFields };
+    fields.forEach(field => {
+      delete newEditingFields[field];
+    });
+    setEditingFields(newEditingFields);
+
+    // 如果清除的是 Supabase 配置，重置客户端
+    if (fields.includes('supabase_url') || fields.includes('supabase_key')) {
+      resetSupabaseClient();
+    }
+
+    if (import.meta.env.DEV) {
+      console.log(`✅ ${serviceName} 配置已清除`);
+    }
+
+    // 显示成功消息
     message.warning({
       content: (
         <div>
-          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>🗑️ 配置已清除</div>
-          <div>所有API配置已重置为默认值</div>
-          <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-            需要重新配置才能使用应用功能
-          </div>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>🗑️ {serviceName} 配置已清除</div>
+          <div>相关字段已重置为空</div>
         </div>
       ),
-      duration: 5,
+      duration: 3,
     });
   };
 
@@ -305,6 +375,14 @@ const Settings = () => {
         style={{ marginBottom: 24 }}
       />
 
+      <Alert
+        message="🔒 安全提示"
+        description='已配置的密钥将以掩码形式显示。点击"重新配置"按钮可修改密钥。'
+        type="warning"
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
+
       <Form.Item
         label="Supabase URL"
         name="supabase_url"
@@ -317,20 +395,54 @@ const Settings = () => {
         />
       </Form.Item>
 
-      <Form.Item
-        label="Supabase Anon Key"
-        name="supabase_key"
-        rules={[{ required: true, message: '请输入 Supabase Anon Key' }]}
-      >
-        <Input.Password placeholder="your-anon-key" prefix={<KeyOutlined />} size="large" />
-      </Form.Item>
+      {isFieldConfigured('supabase_key') && !editingFields['supabase_key'] ? (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>
+            <Space>
+              <span>Supabase Anon Key</span>
+              <Tag color="success">已配置</Tag>
+            </Space>
+          </div>
+          <Input
+            value={maskKey(config.supabase_key)}
+            disabled
+            prefix={<KeyOutlined />}
+            size="large"
+            addonAfter={
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => toggleFieldEdit('supabase_key')}
+                size="small"
+              >
+                重新配置
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <Form.Item
+          label="Supabase Anon Key"
+          name="supabase_key"
+          rules={[{ required: true, message: '请输入 Supabase Anon Key' }]}
+        >
+          <Input.Password
+            placeholder="your-anon-key"
+            prefix={<KeyOutlined />}
+            size="large"
+          />
+        </Form.Item>
+      )}
 
       <Form.Item>
         <Space>
           <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
             保存配置
           </Button>
-          <Button icon={<DeleteOutlined />} onClick={handleClear}>
+          <Button
+            icon={<DeleteOutlined />}
+            onClick={() => handleClearFields(['supabase_url', 'supabase_key'], 'Supabase')}
+          >
             清除配置
           </Button>
         </Space>
@@ -354,16 +466,84 @@ const Settings = () => {
         style={{ marginBottom: 24 }}
       />
 
-      <Form.Item
-        label="高德地图 Key"
-        name="amap_key"
-        rules={[{ required: true, message: '请输入高德地图 Key' }]}
-      >
-        <Input placeholder="your-amap-key" prefix={<KeyOutlined />} size="large" />
-      </Form.Item>
+      <Alert
+        message="🔒 安全提示"
+        description='已配置的密钥将以掩码形式显示。点击"重新配置"按钮可修改密钥。'
+        type="warning"
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
 
-      <Form.Item label="高德地图 Secret（可选）" name="amap_secret">
-        <Input.Password placeholder="your-amap-secret" prefix={<KeyOutlined />} size="large" />
+      {isFieldConfigured('amap_key') && !editingFields['amap_key'] ? (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>
+            <Space>
+              <span>高德地图 Key</span>
+              <Tag color="success">已配置</Tag>
+            </Space>
+          </div>
+          <Input
+            value={maskKey(config.amap_key)}
+            disabled
+            prefix={<KeyOutlined />}
+            size="large"
+            addonAfter={
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => toggleFieldEdit('amap_key')}
+                size="small"
+              >
+                重新配置
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <Form.Item
+          label="高德地图 Key"
+          name="amap_key"
+          rules={[{ required: true, message: '请输入高德地图 Key' }]}
+        >
+          <Input.Password
+            placeholder="your-amap-key"
+            prefix={<KeyOutlined />}
+            size="large"
+          />
+        </Form.Item>
+      )}
+
+      <Form.Item
+        label={
+          <Space>
+            <span>高德地图 Secret（可选）</span>
+            {isFieldConfigured('amap_secret') && !editingFields['amap_secret'] && (
+              <Tag color="success">已配置</Tag>
+            )}
+          </Space>
+        }
+        name="amap_secret"
+      >
+        {isFieldConfigured('amap_secret') && !editingFields['amap_secret'] ? (
+          <Input
+            value={maskKey(config.amap_secret)}
+            disabled
+            prefix={<KeyOutlined />}
+            size="large"
+            addonAfter={
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => toggleFieldEdit('amap_secret')}
+                size="small"
+              >
+                重新配置
+              </Button>
+            }
+          />
+        ) : (
+          <Input.Password placeholder="your-amap-secret" prefix={<KeyOutlined />} size="large" />
+        )}
       </Form.Item>
 
       <Form.Item>
@@ -371,7 +551,10 @@ const Settings = () => {
           <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
             保存配置
           </Button>
-          <Button icon={<DeleteOutlined />} onClick={handleClear}>
+          <Button
+            icon={<DeleteOutlined />}
+            onClick={() => handleClearFields(['amap_key', 'amap_secret'], '高德地图')}
+          >
             清除配置
           </Button>
         </Space>
@@ -395,24 +578,116 @@ const Settings = () => {
         style={{ marginBottom: 24 }}
       />
 
-      <Form.Item label="App ID" name="xfei_app_id">
-        <Input placeholder="your-app-id" prefix={<KeyOutlined />} size="large" />
-      </Form.Item>
+      <Alert
+        message="🔒 安全提示"
+        description='已配置的密钥将以掩码形式显示。点击"重新配置"按钮可修改密钥。'
+        type="warning"
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
 
-      <Form.Item label="API Key" name="xfei_api_key">
-        <Input.Password placeholder="your-api-key" prefix={<KeyOutlined />} size="large" />
-      </Form.Item>
+      {isFieldConfigured('xfei_app_id') && !editingFields['xfei_app_id'] ? (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>
+            <Space>
+              <span>App ID</span>
+              <Tag color="success">已配置</Tag>
+            </Space>
+          </div>
+          <Input
+            value={maskKey(config.xfei_app_id)}
+            disabled
+            prefix={<KeyOutlined />}
+            size="large"
+            addonAfter={
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => toggleFieldEdit('xfei_app_id')}
+                size="small"
+              >
+                重新配置
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <Form.Item label="App ID" name="xfei_app_id">
+          <Input.Password placeholder="your-app-id" prefix={<KeyOutlined />} size="large" />
+        </Form.Item>
+      )}
 
-      <Form.Item label="API Secret" name="xfei_api_secret">
-        <Input.Password placeholder="your-api-secret" prefix={<KeyOutlined />} size="large" />
-      </Form.Item>
+      {isFieldConfigured('xfei_api_key') && !editingFields['xfei_api_key'] ? (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>
+            <Space>
+              <span>API Key</span>
+              <Tag color="success">已配置</Tag>
+            </Space>
+          </div>
+          <Input
+            value={maskKey(config.xfei_api_key)}
+            disabled
+            prefix={<KeyOutlined />}
+            size="large"
+            addonAfter={
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => toggleFieldEdit('xfei_api_key')}
+                size="small"
+              >
+                重新配置
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <Form.Item label="API Key" name="xfei_api_key">
+          <Input.Password placeholder="your-api-key" prefix={<KeyOutlined />} size="large" />
+        </Form.Item>
+      )}
+
+      {isFieldConfigured('xfei_api_secret') && !editingFields['xfei_api_secret'] ? (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>
+            <Space>
+              <span>API Secret</span>
+              <Tag color="success">已配置</Tag>
+            </Space>
+          </div>
+          <Input
+            value={maskKey(config.xfei_api_secret)}
+            disabled
+            prefix={<KeyOutlined />}
+            size="large"
+            addonAfter={
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => toggleFieldEdit('xfei_api_secret')}
+                size="small"
+              >
+                重新配置
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <Form.Item label="API Secret" name="xfei_api_secret">
+          <Input.Password placeholder="your-api-secret" prefix={<KeyOutlined />} size="large" />
+        </Form.Item>
+      )}
 
       <Form.Item>
         <Space>
           <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
             保存配置
           </Button>
-          <Button icon={<DeleteOutlined />} onClick={handleClear}>
+          <Button
+            icon={<DeleteOutlined />}
+            onClick={() => handleClearFields(['xfei_app_id', 'xfei_api_key', 'xfei_api_secret'], '语音识别')}
+          >
             清除配置
           </Button>
         </Space>
@@ -436,14 +711,53 @@ const Settings = () => {
         style={{ marginBottom: 24 }}
       />
 
-      <Form.Item
-        label="API Key"
-        name="llm_api_key"
-        rules={[{ required: true, message: '请输入 LLM API Key' }]}
-        tooltip="在阿里云百炼控制台获取 API Key"
-      >
-        <Input.Password placeholder="sk-xxxxxxxxxxxxxxxx" prefix={<KeyOutlined />} size="large" />
-      </Form.Item>
+      <Alert
+        message="🔒 安全提示"
+        description='已配置的密钥将以掩码形式显示。点击"重新配置"按钮可修改密钥。'
+        type="warning"
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
+
+      {isFieldConfigured('llm_api_key') && !editingFields['llm_api_key'] ? (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8, fontSize: 14, fontWeight: 500 }}>
+            <Space>
+              <span>API Key</span>
+              <Tag color="success">已配置</Tag>
+            </Space>
+          </div>
+          <Input
+            value={maskKey(config.llm_api_key)}
+            disabled
+            prefix={<KeyOutlined />}
+            size="large"
+            addonAfter={
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => toggleFieldEdit('llm_api_key')}
+                size="small"
+              >
+                重新配置
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <Form.Item
+          label="API Key"
+          name="llm_api_key"
+          rules={[{ required: true, message: '请输入 LLM API Key' }]}
+          tooltip="在阿里云百炼控制台获取 API Key"
+        >
+          <Input.Password
+            placeholder="sk-xxxxxxxxxxxxxxxx"
+            prefix={<KeyOutlined />}
+            size="large"
+          />
+        </Form.Item>
+      )}
 
       <Form.Item
         label="API Endpoint"
@@ -474,7 +788,10 @@ const Settings = () => {
           <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
             保存配置
           </Button>
-          <Button icon={<DeleteOutlined />} onClick={handleClear}>
+          <Button
+            icon={<DeleteOutlined />}
+            onClick={() => handleClearFields(['llm_api_key', 'llm_endpoint'], 'AI 模型')}
+          >
             清除配置
           </Button>
         </Space>
