@@ -70,10 +70,17 @@ const Budget = () => {
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
   const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);
   const [showVoiceInput, setShowVoiceInput] = useState(false);
-  const [voiceInputField, setVoiceInputField] = useState<'amount' | 'description' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // 防止重复提交
-  const [formKey, setFormKey] = useState(0); // 用于强制刷新表单
   const [form] = Form.useForm();
+
+  // 受控表单字段
+  const [formValues, setFormValues] = useState<{
+    category?: ExpenseCategory;
+    amount?: number;
+    description?: string;
+    date?: dayjs.Dayjs;
+    notes?: string;
+  }>({});
 
   // 快捷键支持：Ctrl/Cmd + K 打开添加费用对话框
   useEffect(() => {
@@ -292,116 +299,62 @@ const Budget = () => {
     return result;
   };
 
-  // 语音识别结果处理（增强版）
+  // 语音识别结果处理
   const handleVoiceResult = (text: string) => {
-    console.log('\n========================================');
     console.log('🎤 语音识别结果:', text);
-    console.log('📍 当前输入字段模式:', voiceInputField);
-    console.log('📋 表单实例:', form);
-    console.log('========================================\n');
 
-    // 智能解析语音输入
     const parsed = parseSmartExpense(text);
     console.log('📝 解析结果:', parsed);
 
     const updates: any = {};
     const messages: string[] = [];
 
-    // 根据当前输入字段决定填充策略
-    if (voiceInputField === 'amount') {
-      // 仅填充金额字段
-      if (parsed.amount !== null) {
-        updates.amount = parsed.amount;
-        messages.push(`金额: ¥${parsed.amount}`);
-      } else {
-        message.warning({
-          content: '未能识别到有效金额，请重试',
-          duration: 3,
-        });
-        return;
-      }
-    } else if (voiceInputField === 'description') {
-      // 仅填充描述字段
+    // 智能模式：识别所有信息
+    if (parsed.amount !== null) {
+      updates.amount = parsed.amount;
+      messages.push(`金额: ¥${parsed.amount}`);
+    }
+    if (parsed.category) {
+      updates.category = parsed.category;
+      messages.push(`类别: ${EXPENSE_CATEGORIES[parsed.category]}`);
+    }
+    if (parsed.description) {
       updates.description = parsed.description;
       messages.push(`描述: ${parsed.description}`);
-    } else {
-      // 智能模式：一次性填充所有识别到的字段
-      if (parsed.amount !== null) {
-        updates.amount = parsed.amount;
-        messages.push(`金额: ¥${parsed.amount}`);
-      }
-
-      if (parsed.category) {
-        updates.category = parsed.category;
-        messages.push(`类别: ${EXPENSE_CATEGORIES[parsed.category]}`);
-      }
-
-      if (parsed.description) {
-        updates.description = parsed.description;
-        messages.push(`描述: ${parsed.description}`);
-      }
-
-      // 如果什么都没识别到
-      if (Object.keys(updates).length === 0) {
-        message.warning({
-          content: '未能识别到有效信息，请重试',
-          duration: 3,
-        });
-        return;
-      }
     }
 
-    console.log('\n========================================');
-    console.log('📋 准备更新表单字段:', updates);
-    console.log('📋 更新前的表单值:', form.getFieldsValue());
-    console.log('========================================\n');
-
-    try {
-      console.log('🔄 开始更新表单...');
-
-      // 先更新表单数据
-      form.setFieldsValue(updates);
-
-      console.log('✅ setFieldsValue 调用完成');
-
-      // 验证更新
-      const currentValues = form.getFieldsValue();
-      console.log('\n========================================');
-      console.log('📊 更新后的表单值:', currentValues);
-      console.log('🔍 字段对比:');
-      console.log('  - amount:', updates.amount, '→', currentValues.amount);
-      console.log('  - category:', updates.category, '→', currentValues.category);
-      console.log('  - description:', updates.description, '→', currentValues.description);
-      console.log('========================================\n');
-
-      // 显示成功消息
-      message.success({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
-            {messages.map((msg, index) => (
-              <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
-            ))}
-          </div>
-        ),
-        duration: 3,
-      });
-
-      // 强制刷新表单组件
-      console.log('🔄 强制刷新表单组件...');
-      setFormKey(prev => prev + 1);
-
-      // 延迟关闭语音输入，确保表单已经渲染了新值
-      setTimeout(() => {
-        console.log('🔄 关闭语音输入界面...');
-        setShowVoiceInput(false);
-        setVoiceInputField(null);
-      }, 500);
-
-    } catch (error) {
-      console.error('❌ 表单更新失败:', error);
-      message.error('表单更新失败，请重试');
+    if (Object.keys(updates).length === 0) {
+      message.warning({ content: '未能识别到有效信息，请重试', duration: 3 });
+      return;
     }
+
+    console.log('📋 更新表单字段:', updates);
+
+    // 更新受控状态
+    setFormValues(prev => ({ ...prev, ...updates }));
+
+    // 同时更新 Form 实例
+    form.setFieldsValue(updates);
+
+    console.log('✅ 表单更新完成');
+
+    // 显示成功消息
+    message.success({
+      content: (
+        <div>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
+          {messages.map((msg, index) => (
+            <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
+          ))}
+        </div>
+      ),
+      duration: 3,
+    });
+
+    // 关闭语音输入
+    setTimeout(() => {
+      setShowVoiceInput(false);
+    }, 300);
   };
 
   // 测试解析功能（仅开发环境）
@@ -435,15 +388,14 @@ const Budget = () => {
   const handleOpenModal = () => {
     console.log('📝 打开添加费用对话框');
 
+    // 重置受控状态
+    setFormValues({ date: dayjs() });
+
     // 重置表单
     form.resetFields();
+    form.setFieldsValue({ date: dayjs() });
 
-    // 设置默认日期为今天
-    form.setFieldsValue({
-      date: dayjs(),
-    });
-
-    console.log('📋 表单已重置，默认日期:', dayjs().format('YYYY-MM-DD'));
+    console.log('📋 表单已重置');
 
     setModalVisible(true);
   };
@@ -1191,8 +1143,8 @@ const Budget = () => {
             if (!isSubmitting) {
               setModalVisible(false);
               form.resetFields();
+              setFormValues({});
               setShowVoiceInput(false);
-              setVoiceInputField(null);
             }
           }}
           okText={isSubmitting ? '提交中...' : '确认添加'}
@@ -1221,8 +1173,8 @@ const Budget = () => {
             }
           }}
         >
-          {/* 表单组件 - 始终渲染，使用 key 强制刷新 */}
-          <Form key={formKey} form={form} layout="vertical" preserve={true}>
+          {/* 表单组件 - 始终渲染 */}
+          <Form form={form} layout="vertical" preserve={true}>
               {/* 智能语音输入按钮 */}
               <Alert
                 message={
@@ -1231,10 +1183,7 @@ const Budget = () => {
                     <Button
                       type="primary"
                       icon={<AudioOutlined />}
-                      onClick={() => {
-                        setShowVoiceInput(true);
-                        setVoiceInputField(null); // null 表示智能模式
-                      }}
+                      onClick={() => setShowVoiceInput(true)}
                       size="small"
                     >
                       一键语音输入
@@ -1248,7 +1197,11 @@ const Budget = () => {
               />
 
               <Form.Item label="类别" name="category" rules={[{ required: true, message: '请选择类别' }]}>
-                <Select placeholder="请选择费用类别">
+                <Select
+                  placeholder="请选择费用类别"
+                  value={formValues.category}
+                  onChange={(value) => setFormValues(prev => ({ ...prev, category: value }))}
+                >
                   {Object.entries(EXPENSE_CATEGORIES).map(([key, label]) => (
                     <Option key={key} value={key}>
                       <Space>
@@ -1261,54 +1214,40 @@ const Budget = () => {
               </Form.Item>
 
               <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
-                <Space.Compact style={{ width: '100%' }}>
-                  <InputNumber
-                    style={{ flex: 1 }}
-                    min={0}
-                    precision={2}
-                    prefix="¥"
-                    placeholder="请输入金额"
-                  />
-                  <Button
-                    icon={<AudioOutlined />}
-                    onClick={() => {
-                      setShowVoiceInput(true);
-                      setVoiceInputField('amount');
-                    }}
-                    type="primary"
-                    ghost
-                  >
-                    语音输入
-                  </Button>
-                </Space.Compact>
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  precision={2}
+                  prefix="¥"
+                  placeholder="请输入金额"
+                  value={formValues.amount}
+                  onChange={(value) => setFormValues(prev => ({ ...prev, amount: value || undefined }))}
+                />
               </Form.Item>
 
               <Form.Item label="描述" name="description" rules={[{ required: true, message: '请输入描述' }]}>
-                <Space.Compact style={{ width: '100%' }}>
-                  <Input
-                    style={{ flex: 1 }}
-                    placeholder="例如：午餐、出租车费"
-                  />
-                  <Button
-                    icon={<AudioOutlined />}
-                    onClick={() => {
-                      setShowVoiceInput(true);
-                      setVoiceInputField('description');
-                    }}
-                    type="primary"
-                    ghost
-                  >
-                    语音
-                  </Button>
-                </Space.Compact>
+                <Input
+                  placeholder="例如：午餐、出租车费"
+                  value={formValues.description}
+                  onChange={(e) => setFormValues(prev => ({ ...prev, description: e.target.value }))}
+                />
               </Form.Item>
 
               <Form.Item label="日期" name="date" rules={[{ required: true, message: '请选择日期' }]}>
-                <DatePicker style={{ width: '100%' }} />
+                <DatePicker
+                  style={{ width: '100%' }}
+                  value={formValues.date}
+                  onChange={(value) => setFormValues(prev => ({ ...prev, date: value || undefined }))}
+                />
               </Form.Item>
 
               <Form.Item label="备注" name="notes">
-                <Input.TextArea rows={3} placeholder="可选的备注信息" />
+                <Input.TextArea
+                  rows={3}
+                  placeholder="可选的备注信息"
+                  value={formValues.notes}
+                  onChange={(e) => setFormValues(prev => ({ ...prev, notes: e.target.value }))}
+                />
               </Form.Item>
 
               {/* 快捷语音输入提示 */}
@@ -1316,15 +1255,10 @@ const Budget = () => {
                 message="💡 智能语音输入示例"
                 description={
                   <div>
-                    <p style={{ margin: '4px 0', fontWeight: 500 }}>一键语音输入（推荐）：</p>
                     <p style={{ margin: '4px 0' }}>• "午餐花了50块" → 自动识别：金额50、类别餐饮、描述午餐</p>
                     <p style={{ margin: '4px 0' }}>• "打车30元" → 自动识别：金额30、类别交通、描述打车</p>
                     <p style={{ margin: '4px 0' }}>• "门票80" → 自动识别：金额80、类别景点、描述门票</p>
                     <p style={{ margin: '4px 0' }}>• "买纪念品200" → 自动识别：金额200、类别购物、描述纪念品</p>
-                    <Divider style={{ margin: '8px 0' }} />
-                    <p style={{ margin: '4px 0', fontSize: 12, color: '#666' }}>
-                      也可以点击单个字段旁的"语音输入"按钮，单独输入该字段内容
-                    </p>
                   </div>
                 }
                 type="info"
@@ -1349,10 +1283,7 @@ const Budget = () => {
             >
               <VoiceInput
                 onResult={handleVoiceResult}
-                onCancel={() => {
-                  setShowVoiceInput(false);
-                  setVoiceInputField(null);
-                }}
+                onCancel={() => setShowVoiceInput(false)}
               />
             </div>
           )}
