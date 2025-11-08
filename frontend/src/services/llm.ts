@@ -68,7 +68,9 @@ const callLLM = async (prompt: string, systemPrompt?: string): Promise<string> =
       headers.Authorization = `Bearer ${apiKey}`;
     } else if (isAliyun) {
       // 阿里云百炼 - 使用代理
-      console.log('使用代理调用阿里云百炼API');
+      if (import.meta.env.DEV) {
+        console.log('使用代理调用阿里云百炼API');
+      }
 
       // 使用后端代理
       // 通过nginx反向代理到后端服务
@@ -101,13 +103,15 @@ const callLLM = async (prompt: string, systemPrompt?: string): Promise<string> =
       headers.Authorization = `Bearer ${apiKey}`;
     }
 
-    console.log('调用AI服务:', {
-      endpoint: apiEndpoint,
-      isOpenAI,
-      isBaidu,
-      isAliyun,
-      useProxy: isAliyun
-    });
+    if (import.meta.env.DEV) {
+      console.log('调用AI服务:', {
+        endpoint: apiEndpoint,
+        isOpenAI,
+        isBaidu,
+        isAliyun,
+        useProxy: isAliyun
+      });
+    }
 
     const response = await axios.post(apiEndpoint, requestBody, {
       headers,
@@ -1269,9 +1273,13 @@ ${Object.entries(categoryStats).map(([cat, amount]) => {
 类别代码：transportation(交通)、accommodation(住宿)、food(餐饮)、attraction(景点)、shopping(购物)、other(其他)`;
 
   try {
-    console.log('🤖 发送预算分析请求...');
+    if (import.meta.env.DEV) {
+      console.log('🤖 发送预算分析请求...');
+    }
     const response = await callLLM(userPrompt, systemPrompt);
-    console.log('📥 收到 AI 响应:', response.substring(0, 200) + '...');
+    if (import.meta.env.DEV) {
+      console.log('📥 收到 AI 响应:', response.substring(0, 200) + '...');
+    }
 
     let jsonStr = response.trim();
     if (jsonStr.startsWith('```json')) {

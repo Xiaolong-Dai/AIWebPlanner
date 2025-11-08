@@ -15,12 +15,15 @@ export const getSupabaseClient = (): SupabaseClient => {
   const supabaseUrl = config.supabase_url || import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = config.supabase_key || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  console.log('🔧 Supabase 配置检查:', {
-    hasUrl: !!supabaseUrl,
-    hasKey: !!supabaseKey,
-    urlSource: config.supabase_url ? '用户配置' : '环境变量',
-    keySource: config.supabase_key ? '用户配置' : '环境变量',
-  });
+  // 仅在开发环境输出配置检查信息（不包含敏感信息）
+  if (import.meta.env.DEV) {
+    console.log('🔧 Supabase 配置检查:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      urlSource: config.supabase_url ? '用户配置' : '环境变量',
+      keySource: config.supabase_key ? '用户配置' : '环境变量',
+    });
+  }
 
   // 检查是否为占位符
   const isPlaceholder =
@@ -36,7 +39,9 @@ export const getSupabaseClient = (): SupabaseClient => {
 
   // 如果配置改变，重新创建实例
   if (!supabaseInstance || currentUrl !== supabaseUrl || currentKey !== supabaseKey) {
-    console.log('✅ 创建新的 Supabase 客户端实例');
+    if (import.meta.env.DEV) {
+      console.log('✅ 创建新的 Supabase 客户端实例');
+    }
     try {
       supabaseInstance = createClient(supabaseUrl, supabaseKey, {
         auth: {
@@ -46,9 +51,11 @@ export const getSupabaseClient = (): SupabaseClient => {
       });
       currentUrl = supabaseUrl;
       currentKey = supabaseKey;
-      console.log('✅ Supabase 客户端创建成功');
+      if (import.meta.env.DEV) {
+        console.log('✅ Supabase 客户端创建成功');
+      }
     } catch (error) {
-      console.error('❌ Supabase 客户端创建失败:', error);
+      console.error('❌ Supabase 客户端创建失败');
       throw new Error('Supabase 客户端创建失败，请检查配置是否正确');
     }
   }
