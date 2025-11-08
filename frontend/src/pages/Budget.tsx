@@ -179,19 +179,26 @@ const Budget = () => {
     }
   };
 
-  // 解析金额的辅助函数
+  // 解析金额的辅助函数（增强版）
   const parseExpenseAmount = (text: string): number | null => {
+    // 移除所有空格
+    const cleanText = text.replace(/\s+/g, '');
+
     // 匹配各种金额表达方式
     const patterns = [
-      /(\d+\.?\d*)元/,
-      /(\d+\.?\d*)块/,
-      /(\d+\.?\d*)块钱/,
-      /花了(\d+\.?\d*)/,
-      /(\d+\.?\d*)$/,  // 纯数字
+      /(\d+\.?\d*)\s*元/,
+      /(\d+\.?\d*)\s*块/,
+      /(\d+\.?\d*)\s*块钱/,
+      /花了\s*(\d+\.?\d*)/,
+      /(\d+\.?\d*)\s*人民币/,
+      /(\d+\.?\d*)\s*rmb/i,
+      /(\d+\.?\d*)\s*￥/,
+      /¥\s*(\d+\.?\d*)/,
+      /(\d+\.?\d*)\s*$/,  // 纯数字（放在最后）
     ];
 
     for (const pattern of patterns) {
-      const match = text.match(pattern);
+      const match = cleanText.match(pattern);
       if (match) {
         const amount = parseFloat(match[1]);
         if (!isNaN(amount) && amount > 0) {
@@ -203,15 +210,15 @@ const Budget = () => {
     return null;
   };
 
-  // 解析类别的辅助函数
+  // 解析类别的辅助函数（增强版）
   const parseExpenseCategory = (text: string): ExpenseCategory | null => {
     const categoryKeywords: Record<ExpenseCategory, string[]> = {
-      transportation: ['交通', '出租车', '地铁', '公交', '打车', '滴滴', '车费', '高铁', '火车', '飞机', '航班'],
-      accommodation: ['住宿', '酒店', '宾馆', '民宿', '房费'],
-      food: ['吃饭', '午餐', '晚餐', '早餐', '餐饮', '饭', '吃', '美食'],
-      attraction: ['门票', '景点', '参观', '游览'],
-      shopping: ['购物', '买', '商场', '超市'],
-      other: ['其他'],
+      transportation: ['交通', '出租车', '地铁', '公交', '打车', '滴滴', '车费', '高铁', '火车', '飞机', '航班', '票', '租车', '油费', '停车'],
+      accommodation: ['住宿', '酒店', '宾馆', '民宿', '房费', '旅馆', '客栈'],
+      food: ['吃饭', '午餐', '晚餐', '早餐', '餐饮', '饭', '吃', '美食', '餐厅', '饮料', '咖啡', '茶', '小吃', '夜宵'],
+      attraction: ['门票', '景点', '参观', '游览', '博物馆', '公园', '游乐园', '动物园'],
+      shopping: ['购物', '买', '商场', '超市', '纪念品', '特产', '礼物'],
+      other: ['其他', '杂费', '小费'],
     };
 
     for (const [category, keywords] of Object.entries(categoryKeywords)) {
@@ -223,30 +230,118 @@ const Budget = () => {
     return null;
   };
 
-  // 语音识别结果处理
-  const handleVoiceResult = (text: string) => {
-    console.log('语音识别结果:', text);
+  // 智能解析语音输入（一次性解析所有信息）
+  const parseSmartExpense = (text: string): {
+    amount: number | null;
+    category: ExpenseCategory | null;
+    description: string;
+  } => {
+    const result = {
+      amount: null as number | null,
+      category: null as ExpenseCategory | null,
+      description: text,
+    };
 
-    if (voiceInputField === 'amount') {
-      // 解析金额
-      const amount = parseExpenseAmount(text);
-      if (amount !== null) {
-        form.setFieldsValue({ amount });
-        message.success(`识别到金额: ¥${amount}`);
+    // 1. 解析金额
+    result.amount = parseExpenseAmount(text);
+
+    // 2. 解析类别
+    result.category = parseExpenseCategory(text);
+
+    // 3. 生成描述（移除金额相关的词，保留有意义的描述）
+    let description = text;
+
+    // 移除金额表达
+    description = description
+      .replace(/(\d+\.?\d*)\s*(元|块|块钱|人民币|rmb|￥)/gi, '')
+      .replace(/¥\s*(\d+\.?\d*)/g, '')
+      .replace(/花了\s*(\d+\.?\d*)/g, '')
+      .trim();
+
+    // 如果描述为空或太短，使用类别名称
+    if (!description || description.length < 2) {
+      if (result.category) {
+        description = EXPENSE_CATEGORIES[result.category];
       } else {
-        message.warning('未能识别到有效金额，请重试');
+        description = text;
+      }
+    }
+
+    result.description = description;
+
+    return result;
+  };
+
+  // 语音识别结果处理（增强版）
+  const handleVoiceResult = (text: string) => {
+    console.log('🎤 语音识别结果:', text);
+
+    // 智能解析语音输入
+    const parsed = parseSmartExpense(text);
+    console.log('📝 解析结果:', parsed);
+
+    const updates: any = {};
+    const messages: string[] = [];
+
+    // 根据当前输入字段决定填充策略
+    if (voiceInputField === 'amount') {
+      // 仅填充金额字段
+      if (parsed.amount !== null) {
+        updates.amount = parsed.amount;
+        messages.push(`金额: ¥${parsed.amount}`);
+      } else {
+        message.warning({
+          content: '未能识别到有效金额，请重试',
+          duration: 3,
+        });
+        return;
       }
     } else if (voiceInputField === 'description') {
-      // 直接使用识别文本作为描述
-      form.setFieldsValue({ description: text });
+      // 仅填充描述字段
+      updates.description = parsed.description;
+      messages.push(`描述: ${parsed.description}`);
+    } else {
+      // 智能模式：一次性填充所有识别到的字段
+      if (parsed.amount !== null) {
+        updates.amount = parsed.amount;
+        messages.push(`金额: ¥${parsed.amount}`);
+      }
+
+      if (parsed.category) {
+        updates.category = parsed.category;
+        messages.push(`类别: ${EXPENSE_CATEGORIES[parsed.category]}`);
+      }
+
+      if (parsed.description) {
+        updates.description = parsed.description;
+        messages.push(`描述: ${parsed.description}`);
+      }
+
+      // 如果什么都没识别到
+      if (Object.keys(updates).length === 0) {
+        message.warning({
+          content: '未能识别到有效信息，请重试',
+          duration: 3,
+        });
+        return;
+      }
     }
 
-    // 尝试识别类别
-    const category = parseExpenseCategory(text);
-    if (category) {
-      form.setFieldsValue({ category });
-      message.success(`识别到类别: ${EXPENSE_CATEGORIES[category]}`);
-    }
+    // 更新表单
+    form.setFieldsValue(updates);
+
+    // 显示成功消息
+    message.success({
+      content: (
+        <div>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
+          {messages.map((msg, index) => (
+            <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
+          ))}
+        </div>
+      ),
+      duration: 3,
+    });
 
     setShowVoiceInput(false);
     setVoiceInputField(null);
@@ -1015,6 +1110,30 @@ const Budget = () => {
             />
           ) : (
             <Form form={form} layout="vertical">
+              {/* 智能语音输入按钮 */}
+              <Alert
+                message={
+                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <span>💡 试试智能语音输入</span>
+                    <Button
+                      type="primary"
+                      icon={<AudioOutlined />}
+                      onClick={() => {
+                        setShowVoiceInput(true);
+                        setVoiceInputField(null); // null 表示智能模式
+                      }}
+                      size="small"
+                    >
+                      一键语音输入
+                    </Button>
+                  </Space>
+                }
+                description="说出完整信息，例如：'午餐50元' 或 '打车30块'，AI 会自动识别金额、类别和描述"
+                type="info"
+                showIcon={false}
+                style={{ marginBottom: 16 }}
+              />
+
               <Form.Item label="类别" name="category" rules={[{ required: true, message: '请选择类别' }]}>
                 <Select placeholder="请选择费用类别">
                   {Object.entries(EXPENSE_CATEGORIES).map(([key, label]) => (
@@ -1081,12 +1200,18 @@ const Budget = () => {
 
               {/* 快捷语音输入提示 */}
               <Alert
-                message="💡 语音输入提示"
+                message="💡 智能语音输入示例"
                 description={
                   <div>
-                    <p style={{ margin: '4px 0' }}>• 说"午餐花了50块"会自动识别金额和类别</p>
-                    <p style={{ margin: '4px 0' }}>• 说"出租车费30元"会自动填充</p>
-                    <p style={{ margin: '4px 0' }}>• 说"门票80"会识别为景点费用</p>
+                    <p style={{ margin: '4px 0', fontWeight: 500 }}>一键语音输入（推荐）：</p>
+                    <p style={{ margin: '4px 0' }}>• "午餐花了50块" → 自动识别：金额50、类别餐饮、描述午餐</p>
+                    <p style={{ margin: '4px 0' }}>• "打车30元" → 自动识别：金额30、类别交通、描述打车</p>
+                    <p style={{ margin: '4px 0' }}>• "门票80" → 自动识别：金额80、类别景点、描述门票</p>
+                    <p style={{ margin: '4px 0' }}>• "买纪念品200" → 自动识别：金额200、类别购物、描述纪念品</p>
+                    <Divider style={{ margin: '8px 0' }} />
+                    <p style={{ margin: '4px 0', fontSize: 12, color: '#666' }}>
+                      也可以点击单个字段旁的"语音输入"按钮，单独输入该字段内容
+                    </p>
                   </div>
                 }
                 type="info"
