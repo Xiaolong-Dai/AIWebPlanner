@@ -6,7 +6,6 @@ import { signIn, signUp } from '../services/auth';
 import { useAuthStore } from '../store/authStore';
 import { useApiConfigStore } from '../store/apiConfigStore';
 import { ROUTES } from '../constants';
-import DebugPanel from '../components/DebugPanel';
 import './Login.css';
 
 const Login = () => {
@@ -360,9 +359,6 @@ const Login = () => {
           </div>
         </Card>
       </div>
-
-      {/* 调试面板 */}
-      <DebugPanel />
     </div>
   );
 };
