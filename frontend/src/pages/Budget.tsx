@@ -187,11 +187,8 @@ const Budget = () => {
     }
   };
 
-  // 解析金额的辅助函数（增强版）
+  // 解析金额的辅助函数
   const parseExpenseAmount = (text: string): number | null => {
-    console.log('💰 开始解析金额，输入文本:', text);
-
-    // 匹配各种金额表达方式（不移除空格，直接匹配）
     const patterns = [
       /(\d+\.?\d*)\s*元/,
       /(\d+\.?\d*)\s*块钱/,
@@ -204,30 +201,21 @@ const Budget = () => {
       /(\d+\.?\d*)$/,  // 纯数字（放在最后）
     ];
 
-    for (let i = 0; i < patterns.length; i++) {
-      const pattern = patterns[i];
+    for (const pattern of patterns) {
       const match = text.match(pattern);
-      console.log(`  尝试模式 ${i + 1}:`, pattern, '匹配结果:', match);
-
       if (match && match[1]) {
         const amount = parseFloat(match[1]);
-        console.log(`  解析数字:`, match[1], '→', amount);
-
         if (!isNaN(amount) && amount > 0) {
-          console.log(`✅ 成功解析金额: ${amount}`);
           return amount;
         }
       }
     }
 
-    console.log('❌ 未能解析出金额');
     return null;
   };
 
-  // 解析类别的辅助函数（增强版）
+  // 解析类别的辅助函数
   const parseExpenseCategory = (text: string): ExpenseCategory | null => {
-    console.log('📂 开始解析类别，输入文本:', text);
-
     const categoryKeywords: Record<ExpenseCategory, string[]> = {
       transportation: ['交通', '出租车', '地铁', '公交', '打车', '滴滴', '车费', '高铁', '火车', '飞机', '航班', '票', '租车', '油费', '停车'],
       accommodation: ['住宿', '酒店', '宾馆', '民宿', '房费', '旅馆', '客栈'],
@@ -240,49 +228,38 @@ const Budget = () => {
     for (const [category, keywords] of Object.entries(categoryKeywords)) {
       const matchedKeyword = keywords.find(keyword => text.includes(keyword));
       if (matchedKeyword) {
-        console.log(`✅ 匹配到类别: ${category} (关键词: ${matchedKeyword})`);
         return category as ExpenseCategory;
       }
     }
 
-    console.log('❌ 未能解析出类别');
     return null;
   };
 
-  // 智能解析语音输入（一次性解析所有信息）
+  // 智能解析语音输入
   const parseSmartExpense = (text: string): {
     amount: number | null;
     category: ExpenseCategory | null;
     description: string;
   } => {
-    console.log('🔍 开始解析语音输入:', text);
-
     const result = {
       amount: null as number | null,
       category: null as ExpenseCategory | null,
       description: text,
     };
 
-    // 1. 解析金额
+    // 解析金额
     result.amount = parseExpenseAmount(text);
-    console.log('💰 解析金额结果:', result.amount);
 
-    // 2. 解析类别
+    // 解析类别
     result.category = parseExpenseCategory(text);
-    console.log('📂 解析类别结果:', result.category);
 
-    // 3. 生成描述（移除金额相关的词，保留有意义的描述）
-    let description = text;
-
-    // 移除金额表达
-    description = description
+    // 生成描述（移除金额相关的词）
+    let description = text
       .replace(/(\d+\.?\d*)\s*(元|块|块钱|人民币|rmb|￥)/gi, '')
       .replace(/¥\s*(\d+\.?\d*)/g, '')
       .replace(/花了\s*(\d+\.?\d*)/g, '')
-      .replace(/\s+/g, ' ') // 合并多个空格
+      .replace(/\s+/g, ' ')
       .trim();
-
-    console.log('📝 处理后的描述:', description);
 
     // 如果描述为空或太短，使用类别名称或原文本
     if (!description || description.length < 2) {
@@ -294,17 +271,13 @@ const Budget = () => {
     }
 
     result.description = description;
-    console.log('✅ 最终解析结果:', result);
 
     return result;
   };
 
   // 语音识别结果处理
   const handleVoiceResult = (text: string) => {
-    console.log('🎤 语音识别结果:', text);
-
     const parsed = parseSmartExpense(text);
-    console.log('📝 解析结果:', parsed);
 
     const updates: any = {};
     const messages: string[] = [];
@@ -328,15 +301,11 @@ const Budget = () => {
       return;
     }
 
-    console.log('📋 更新表单字段:', updates);
-
     // 更新受控状态
     setFormValues(prev => ({ ...prev, ...updates }));
 
     // 同时更新 Form 实例
     form.setFieldsValue(updates);
-
-    console.log('✅ 表单更新完成');
 
     // 显示成功消息
     message.success({
@@ -357,45 +326,14 @@ const Budget = () => {
     }, 300);
   };
 
-  // 测试解析功能（仅开发环境）
-  const testParsing = (testText: string) => {
-    console.log('\n========== 测试解析功能 ==========');
-    console.log('测试文本:', testText);
-    console.log('=====================================\n');
-
-    const result = parseSmartExpense(testText);
-
-    console.log('\n========== 解析结果 ==========');
-    console.log('金额:', result.amount);
-    console.log('类别:', result.category);
-    console.log('描述:', result.description);
-    console.log('==============================\n');
-
-    message.info({
-      content: (
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>测试结果：</div>
-          <div>金额: {result.amount || '未识别'}</div>
-          <div>类别: {result.category || '未识别'}</div>
-          <div>描述: {result.description || '未识别'}</div>
-        </div>
-      ),
-      duration: 5,
-    });
-  };
-
   // 打开添加费用对话框
   const handleOpenModal = () => {
-    console.log('📝 打开添加费用对话框');
-
     // 重置受控状态
     setFormValues({ date: dayjs() });
 
     // 重置表单
     form.resetFields();
     form.setFieldsValue({ date: dayjs() });
-
-    console.log('📋 表单已重置');
 
     setModalVisible(true);
   };
@@ -860,27 +798,7 @@ const Budget = () => {
               ))}
             </Select>
 
-            {/* 开发环境测试按钮 */}
-            {import.meta.env.DEV && (
-              <Button
-                type="dashed"
-                onClick={() => {
-                  const testCases = [
-                    '午餐50元',
-                    '打车30块',
-                    '门票80',
-                    '买纪念品200',
-                    '住宿500块钱',
-                  ];
-                  const randomTest = testCases[Math.floor(Math.random() * testCases.length)];
-                  testParsing(randomTest);
-                }}
-              >
-                🧪 测试解析
-              </Button>
-            )}
-
-            {/* 优化后的添加费用按钮 */}
+            {/* 添加费用按钮 */}
             <Tooltip
               title={
                 !selectedPlanId
