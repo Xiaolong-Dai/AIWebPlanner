@@ -23,6 +23,7 @@ import {
   Tooltip,
   Alert,
 } from 'antd';
+import AILoadingIndicator from '../components/AILoadingIndicator';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -1114,9 +1115,19 @@ const Budget = () => {
           width={800}
         >
           {aiAnalysisLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <Spin size="large" />
-              <div style={{ marginTop: 16, color: '#666' }}>AI正在分析您的预算...</div>
+            <div style={{ padding: '20px 0' }}>
+              <AILoadingIndicator
+                message="AI 正在分析您的预算"
+                estimatedTime={120}
+                showProgress={true}
+                tips={[
+                  '💰 正在分析您的支出结构...',
+                  '📊 正在计算预算健康度...',
+                  '🔍 正在识别超支风险...',
+                  '💡 正在生成优化建议...',
+                  '✨ 即将完成分析...',
+                ]}
+              />
             </div>
           ) : aiAnalysisResult ? (
             <div>

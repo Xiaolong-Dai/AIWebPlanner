@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Card, Input, Button, Space, Avatar, Spin, message } from 'antd';
+import { Card, Input, Button, Space, Avatar, message } from 'antd';
 import { SendOutlined, UserOutlined, RobotOutlined, AudioOutlined } from '@ant-design/icons';
 import { chatWithAI, generateTravelPlan } from '../../services/llm';
 import VoiceInput from '../VoiceInput';
+import AILoadingIndicator from '../AILoadingIndicator';
 import './index.css';
 
 const { TextArea } = Input;
@@ -707,11 +708,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           {loading && (
             <div className="message-item assistant">
               <Avatar icon={<RobotOutlined />} className="message-avatar assistant" size={40} />
-              <div className="message-content">
-                <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', background: 'white', borderRadius: 8 }}>
-                  <Spin size="small" />
-                  <span style={{ marginLeft: 12, color: '#666', fontSize: 14 }}>AI 正在思考...</span>
-                </div>
+              <div className="message-content" style={{ width: '100%', maxWidth: '500px' }}>
+                <AILoadingIndicator
+                  message="AI 正在生成旅行计划"
+                  estimatedTime={180}
+                  showProgress={true}
+                  tips={[
+                    '💡 正在分析您的旅行需求...',
+                    '🔍 正在搜索最佳景点和路线...',
+                    '🏨 正在匹配合适的住宿和餐饮...',
+                    '📝 正在生成详细的每日行程...',
+                    '💰 正在计算预算分配方案...',
+                    '✨ 即将完成，请稍候...',
+                  ]}
+                />
               </div>
             </div>
           )}
