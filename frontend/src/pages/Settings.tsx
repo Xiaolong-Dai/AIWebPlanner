@@ -17,7 +17,7 @@ import './Settings.css';
 const { Paragraph, Text } = Typography;
 
 const Settings = () => {
-  const { config, setConfig, clearConfig, isConfigured } = useApiConfigStore();
+  const { config, setConfig, isConfigured } = useApiConfigStore();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
