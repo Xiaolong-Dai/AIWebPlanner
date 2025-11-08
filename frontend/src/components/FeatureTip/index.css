@@ -1,0 +1,37 @@
+.feature-tip-popover .ant-popover-inner {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.feature-tip-content {
+  max-width: 300px;
+  padding: 4px;
+}
+
+.feature-tip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.feature-tip-popover .ant-popover-arrow {
+  display: block;
+}
+
+/* 动画效果 */
+.feature-tip-popover {
+  animation: tipFadeIn 0.3s ease-in-out;
+}
+
+@keyframes tipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+

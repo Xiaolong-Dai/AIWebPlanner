@@ -1,0 +1,90 @@
+.tips-carousel-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tips-carousel-card .ant-card-body {
+  padding: 0;
+}
+
+.tip-content {
+  padding: 32px 40px;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+}
+
+.tip-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tip-icon {
+  font-size: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.tip-content h4 {
+  color: white !important;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.tip-text {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 15px;
+  line-height: 1.8;
+  display: block;
+  margin-top: 8px;
+}
+
+/* 轮播指示器样式 */
+.tips-carousel-card .ant-carousel .slick-dots {
+  bottom: 16px;
+}
+
+.tips-carousel-card .ant-carousel .slick-dots li button {
+  background: rgba(255, 255, 255, 0.4);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tips-carousel-card .ant-carousel .slick-dots li.slick-active button {
+  background: white;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .tip-content {
+    padding: 24px 20px;
+    min-height: 140px;
+  }
+
+  .tip-icon {
+    font-size: 24px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .tip-content h4 {
+    font-size: 16px;
+  }
+
+  .tip-text {
+    font-size: 14px;
+  }
+}
+

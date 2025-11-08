@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from '../store/authStore';
 import { usePlanStore } from '../store/planStore';
 import { getPlans, getPlanStats } from '../services/plan';
+import TipsCarousel from '../components/TipsCarousel';
 import { ROUTES } from '../constants';
 import './Dashboard.css';
 
@@ -140,6 +141,11 @@ const Dashboard = () => {
             </Button>
           </div>
         </Card>
+
+        {/* 使用技巧轮播 */}
+        <div style={{ marginBottom: 24 }}>
+          <TipsCarousel />
+        </div>
 
         {/* 统计卡片 */}
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>

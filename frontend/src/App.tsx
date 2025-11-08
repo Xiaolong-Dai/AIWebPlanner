@@ -7,6 +7,7 @@ import { onAuthStateChange } from './services/auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/Layout/MainLayout';
 import WelcomeGuide from './components/WelcomeGuide';
+import GlobalHelp from './components/GlobalHelp';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -43,6 +44,7 @@ function App() {
       <ConfigProvider locale={zhCN}>
         <BrowserRouter>
           <WelcomeGuide />
+          <GlobalHelp />
           <Routes>
           {/* 公开路由 */}
           <Route path={ROUTES.LOGIN} element={<Login />} />

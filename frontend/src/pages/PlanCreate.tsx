@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Row, Col, Card, Button, Space, message, Modal, Input, Form } from 'antd';
-import { SaveOutlined, LeftOutlined } from '@ant-design/icons';
+import { Row, Col, Card, Button, Space, message, Modal, Input, Form, Alert } from 'antd';
+import { SaveOutlined, LeftOutlined, BulbOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import ChatInterface from '../components/ChatInterface';
 import MapView from '../components/MapView';
 import ItineraryCard from '../components/ItineraryCard';
+import FeatureTip from '../components/FeatureTip';
 import { createPlan } from '../services/plan';
 import type { DayItinerary } from '../types/common';
 import './PlanCreate.css';
@@ -215,10 +216,36 @@ const PlanCreate = () => {
         </div>
       </div>
 
+      {/* 使用提示 */}
+      <Alert
+        message={
+          <Space>
+            <BulbOutlined />
+            <span>使用提示</span>
+          </Space>
+        }
+        description="您可以直接告诉 AI 您的旅行需求，例如：'我想去东京，5天，预算1万元，喜欢美食和动漫'。也可以点击麦克风使用语音输入。AI 生成详细行程需要 3-5 分钟，请耐心等待。"
+        type="info"
+        showIcon={false}
+        closable
+        style={{ marginBottom: 16 }}
+      />
+
       <Row gutter={[16, 16]}>
         {/* 左侧：AI 对话界面 */}
         <Col xs={24} lg={11} xl={10}>
-          <ChatInterface onPlanGenerated={handlePlanGenerated} />
+          <FeatureTip
+            id="chat_voice_input"
+            title="💡 使用语音输入"
+            content="点击麦克风图标可以使用语音输入，更快捷地描述您的旅行需求。"
+            placement="right"
+            autoShow={true}
+            delay={2000}
+          >
+            <div>
+              <ChatInterface onPlanGenerated={handlePlanGenerated} />
+            </div>
+          </FeatureTip>
         </Col>
 
         {/* 右侧：地图和行程展示 */}
