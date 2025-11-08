@@ -72,6 +72,7 @@ const Budget = () => {
   const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [voiceInputField, setVoiceInputField] = useState<'amount' | 'description' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // 防止重复提交
+  const [formKey, setFormKey] = useState(0); // 用于强制刷新表单
   const [form] = Form.useForm();
 
   // 快捷键支持：Ctrl/Cmd + K 打开添加费用对话框
@@ -385,6 +386,10 @@ const Budget = () => {
         ),
         duration: 3,
       });
+
+      // 强制刷新表单组件
+      console.log('🔄 强制刷新表单组件...');
+      setFormKey(prev => prev + 1);
 
       // 延迟关闭语音输入，确保表单已经渲染了新值
       setTimeout(() => {
@@ -1216,8 +1221,8 @@ const Budget = () => {
             }
           }}
         >
-          {/* 表单组件 - 始终渲染 */}
-          <Form form={form} layout="vertical" preserve={true}>
+          {/* 表单组件 - 始终渲染，使用 key 强制刷新 */}
+          <Form key={formKey} form={form} layout="vertical" preserve={true}>
               {/* 智能语音输入按钮 */}
               <Alert
                 message={
