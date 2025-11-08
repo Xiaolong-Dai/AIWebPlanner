@@ -355,50 +355,48 @@ const Budget = () => {
     console.log('📋 更新前的表单值:', form.getFieldsValue());
     console.log('========================================\n');
 
-    // 使用 setTimeout 确保在下一个事件循环中更新
-    setTimeout(() => {
-      try {
-        // 先关闭语音输入界面
+    try {
+      console.log('🔄 开始更新表单...');
+
+      // 先更新表单数据
+      form.setFieldsValue(updates);
+
+      console.log('✅ setFieldsValue 调用完成');
+
+      // 验证更新
+      const currentValues = form.getFieldsValue();
+      console.log('\n========================================');
+      console.log('📊 更新后的表单值:', currentValues);
+      console.log('🔍 字段对比:');
+      console.log('  - amount:', updates.amount, '→', currentValues.amount);
+      console.log('  - category:', updates.category, '→', currentValues.category);
+      console.log('  - description:', updates.description, '→', currentValues.description);
+      console.log('========================================\n');
+
+      // 显示成功消息
+      message.success({
+        content: (
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
+            {messages.map((msg, index) => (
+              <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
+            ))}
+          </div>
+        ),
+        duration: 3,
+      });
+
+      // 延迟关闭语音输入，确保表单已经渲染了新值
+      setTimeout(() => {
+        console.log('🔄 关闭语音输入界面...');
         setShowVoiceInput(false);
         setVoiceInputField(null);
+      }, 500);
 
-        console.log('🔄 开始更新表单...');
-
-        // 更新表单
-        form.setFieldsValue(updates);
-
-        console.log('✅ setFieldsValue 调用完成');
-
-        // 强制验证表单字段是否真的更新了
-        setTimeout(() => {
-          const currentValues = form.getFieldsValue();
-          console.log('\n========================================');
-          console.log('📊 更新后的表单值:', currentValues);
-          console.log('🔍 字段对比:');
-          console.log('  - amount:', updates.amount, '→', currentValues.amount);
-          console.log('  - category:', updates.category, '→', currentValues.category);
-          console.log('  - description:', updates.description, '→', currentValues.description);
-          console.log('========================================\n');
-
-          // 显示成功消息
-          message.success({
-            content: (
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
-                {messages.map((msg, index) => (
-                  <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
-                ))}
-              </div>
-            ),
-            duration: 3,
-          });
-        }, 100);
-
-      } catch (error) {
-        console.error('❌ 表单更新失败:', error);
-        message.error('表单更新失败，请重试');
-      }
-    }, 50);
+    } catch (error) {
+      console.error('❌ 表单更新失败:', error);
+      message.error('表单更新失败，请重试');
+    }
   };
 
   // 测试解析功能（仅开发环境）
@@ -1218,8 +1216,8 @@ const Budget = () => {
             }
           }}
         >
-          {/* 语音输入组件 */}
-          {showVoiceInput && (
+          {showVoiceInput ? (
+            /* 语音输入组件 */
             <VoiceInput
               onResult={handleVoiceResult}
               onCancel={() => {
@@ -1227,11 +1225,9 @@ const Budget = () => {
                 setVoiceInputField(null);
               }}
             />
-          )}
-
-          {/* 表单组件 - 始终渲染，用 display 控制显示 */}
-          <div style={{ display: showVoiceInput ? 'none' : 'block' }}>
-            <Form form={form} layout="vertical">
+          ) : (
+            /* 表单组件 */
+            <Form form={form} layout="vertical" preserve={true}>
               {/* 智能语音输入按钮 */}
               <Alert
                 message={
@@ -1341,7 +1337,7 @@ const Budget = () => {
                 style={{ marginTop: 16 }}
               />
             </Form>
-          </div>
+          )}
         </Modal>
 
         {/* AI预算分析对话框 */}
