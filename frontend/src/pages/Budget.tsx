@@ -1216,18 +1216,8 @@ const Budget = () => {
             }
           }}
         >
-          {showVoiceInput ? (
-            /* 语音输入组件 */
-            <VoiceInput
-              onResult={handleVoiceResult}
-              onCancel={() => {
-                setShowVoiceInput(false);
-                setVoiceInputField(null);
-              }}
-            />
-          ) : (
-            /* 表单组件 */
-            <Form form={form} layout="vertical" preserve={true}>
+          {/* 表单组件 - 始终渲染 */}
+          <Form form={form} layout="vertical" preserve={true}>
               {/* 智能语音输入按钮 */}
               <Alert
                 message={
@@ -1337,6 +1327,29 @@ const Budget = () => {
                 style={{ marginTop: 16 }}
               />
             </Form>
+
+          {/* 语音输入组件 - 绝对定位覆盖在表单上方 */}
+          {showVoiceInput && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: '#fff',
+                zIndex: 1000,
+                padding: '24px',
+              }}
+            >
+              <VoiceInput
+                onResult={handleVoiceResult}
+                onCancel={() => {
+                  setShowVoiceInput(false);
+                  setVoiceInputField(null);
+                }}
+              />
+            </div>
           )}
         </Modal>
 
