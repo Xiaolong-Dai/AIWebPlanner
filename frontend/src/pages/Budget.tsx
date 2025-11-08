@@ -81,7 +81,7 @@ const Budget = () => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         if (selectedPlanId && !modalVisible) {
-          setModalVisible(true);
+          handleOpenModal();
         }
       }
     };
@@ -236,6 +236,8 @@ const Budget = () => {
     category: ExpenseCategory | null;
     description: string;
   } => {
+    console.log('🔍 开始解析语音输入:', text);
+
     const result = {
       amount: null as number | null,
       category: null as ExpenseCategory | null,
@@ -244,9 +246,11 @@ const Budget = () => {
 
     // 1. 解析金额
     result.amount = parseExpenseAmount(text);
+    console.log('💰 解析金额结果:', result.amount);
 
     // 2. 解析类别
     result.category = parseExpenseCategory(text);
+    console.log('📂 解析类别结果:', result.category);
 
     // 3. 生成描述（移除金额相关的词，保留有意义的描述）
     let description = text;
@@ -256,9 +260,12 @@ const Budget = () => {
       .replace(/(\d+\.?\d*)\s*(元|块|块钱|人民币|rmb|￥)/gi, '')
       .replace(/¥\s*(\d+\.?\d*)/g, '')
       .replace(/花了\s*(\d+\.?\d*)/g, '')
+      .replace(/\s+/g, ' ') // 合并多个空格
       .trim();
 
-    // 如果描述为空或太短，使用类别名称
+    console.log('📝 处理后的描述:', description);
+
+    // 如果描述为空或太短，使用类别名称或原文本
     if (!description || description.length < 2) {
       if (result.category) {
         description = EXPENSE_CATEGORIES[result.category];
@@ -268,6 +275,7 @@ const Budget = () => {
     }
 
     result.description = description;
+    console.log('✅ 最终解析结果:', result);
 
     return result;
   };
@@ -275,6 +283,7 @@ const Budget = () => {
   // 语音识别结果处理（增强版）
   const handleVoiceResult = (text: string) => {
     console.log('🎤 语音识别结果:', text);
+    console.log('📍 当前输入字段模式:', voiceInputField);
 
     // 智能解析语音输入
     const parsed = parseSmartExpense(text);
@@ -327,24 +336,57 @@ const Budget = () => {
       }
     }
 
-    // 更新表单
-    form.setFieldsValue(updates);
+    console.log('📋 准备更新表单字段:', updates);
 
-    // 显示成功消息
-    message.success({
-      content: (
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
-          {messages.map((msg, index) => (
-            <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
-          ))}
-        </div>
-      ),
-      duration: 3,
-    });
-
+    // 先关闭语音输入界面
     setShowVoiceInput(false);
     setVoiceInputField(null);
+
+    // 使用 setTimeout 确保状态更新后再更新表单
+    setTimeout(() => {
+      try {
+        // 更新表单
+        form.setFieldsValue(updates);
+        console.log('✅ 表单字段更新成功');
+
+        // 验证表单字段是否真的更新了
+        const currentValues = form.getFieldsValue();
+        console.log('📊 当前表单值:', currentValues);
+
+        // 显示成功消息
+        message.success({
+          content: (
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
+              {messages.map((msg, index) => (
+                <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
+              ))}
+            </div>
+          ),
+          duration: 3,
+        });
+      } catch (error) {
+        console.error('❌ 表单更新失败:', error);
+        message.error('表单更新失败，请重试');
+      }
+    }, 100);
+  };
+
+  // 打开添加费用对话框
+  const handleOpenModal = () => {
+    console.log('📝 打开添加费用对话框');
+
+    // 重置表单
+    form.resetFields();
+
+    // 设置默认日期为今天
+    form.setFieldsValue({
+      date: dayjs(),
+    });
+
+    console.log('📋 表单已重置，默认日期:', dayjs().format('YYYY-MM-DD'));
+
+    setModalVisible(true);
   };
 
   // 检查预算状态
@@ -819,7 +861,7 @@ const Budget = () => {
                 type="primary"
                 size="large"
                 icon={<PlusOutlined />}
-                onClick={() => setModalVisible(true)}
+                onClick={handleOpenModal}
                 disabled={!selectedPlanId}
                 style={{
                   height: 42,
@@ -969,7 +1011,7 @@ const Budget = () => {
                     type="primary"
                     size="large"
                     icon={<PlusOutlined />}
-                    onClick={() => setModalVisible(true)}
+                    onClick={handleOpenModal}
                     style={{
                       height: 44,
                       paddingLeft: 32,
