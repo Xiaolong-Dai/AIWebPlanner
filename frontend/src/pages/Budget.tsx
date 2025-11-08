@@ -24,6 +24,7 @@ import {
   Alert,
 } from 'antd';
 import AILoadingIndicator from '../components/AILoadingIndicator';
+import { showErrorMessage, showSuccessMessage } from '../utils/errorHandler';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -110,6 +111,46 @@ const Budget = () => {
     }
   }, [selectedPlanId]);
 
+  // 自动保存表单草稿（防抖）
+  useEffect(() => {
+    if (!modalVisible) return;
+
+    const timer = setTimeout(() => {
+      if (Object.keys(formValues).length > 0) {
+        // 保存草稿到 localStorage
+        const draftData: any = { ...formValues };
+        // 日期对象需要转换为字符串
+        if (draftData.date) {
+          draftData.date = draftData.date.toISOString();
+        }
+        localStorage.setItem('expense_draft', JSON.stringify(draftData));
+      }
+    }, 1000); // 防抖 1 秒
+
+    return () => clearTimeout(timer);
+  }, [formValues, modalVisible]);
+
+  // 语音输入快捷键（Ctrl+V）
+  useEffect(() => {
+    if (!modalVisible) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl + V 启动语音输入
+      if (e.ctrlKey && e.key === 'v' && !showVoiceInput) {
+        e.preventDefault();
+        setShowVoiceInput(true);
+        message.info('🎤 语音输入已启动');
+      }
+      // ESC 关闭语音输入
+      if (e.key === 'Escape' && showVoiceInput) {
+        setShowVoiceInput(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modalVisible, showVoiceInput]);
+
   const loadPlans = async () => {
     try {
       const data = await getPlans();
@@ -119,7 +160,7 @@ const Budget = () => {
       }
     } catch (error: any) {
       console.error('加载计划失败:', error);
-      if (error.message.includes('未配置')) {
+      if (error.message?.includes('未配置')) {
         message.warning({
           content: (
             <div>
@@ -132,6 +173,8 @@ const Budget = () => {
           ),
           duration: 6,
         });
+      } else {
+        showErrorMessage(error);
       }
     }
   };
@@ -164,24 +207,7 @@ const Budget = () => {
       setDailyData(dailyStats);
     } catch (error: any) {
       console.error('加载费用数据失败:', error);
-      message.error({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>❌ 加载失败</div>
-            <div>无法获取费用数据</div>
-            <div style={{ marginTop: 8, fontSize: 12 }}>
-              <div>错误原因: {error.message}</div>
-              <div style={{ marginTop: 4, opacity: 0.8 }}>
-                • 请检查网络连接
-              </div>
-              <div style={{ opacity: 0.8 }}>
-                • 请刷新页面重试
-              </div>
-            </div>
-          </div>
-        ),
-        duration: 6,
-      });
+      showErrorMessage(error);
     } finally {
       setLoading(false);
     }
@@ -328,12 +354,32 @@ const Budget = () => {
 
   // 打开添加费用对话框
   const handleOpenModal = () => {
-    // 重置受控状态
-    setFormValues({ date: dayjs() });
-
-    // 重置表单
-    form.resetFields();
-    form.setFieldsValue({ date: dayjs() });
+    // 尝试恢复草稿
+    const draft = localStorage.getItem('expense_draft');
+    if (draft) {
+      try {
+        const draftData = JSON.parse(draft);
+        // 恢复日期对象
+        if (draftData.date) {
+          draftData.date = dayjs(draftData.date);
+        }
+        setFormValues(draftData);
+        form.setFieldsValue(draftData);
+        message.info({
+          content: '已恢复上次未保存的内容',
+          duration: 3,
+        });
+      } catch (error) {
+        console.error('恢复草稿失败:', error);
+        // 恢复失败，使用默认值
+        setFormValues({ date: dayjs() });
+        form.setFieldsValue({ date: dayjs() });
+      }
+    } else {
+      // 没有草稿，使用默认值
+      setFormValues({ date: dayjs() });
+      form.setFieldsValue({ date: dayjs() });
+    }
 
     setModalVisible(true);
   };
@@ -474,32 +520,19 @@ const Budget = () => {
         duration: 3,
       });
 
+      // 清除草稿
+      localStorage.removeItem('expense_draft');
+
       setModalVisible(false);
       form.resetFields();
+      setFormValues({});
       await loadExpenses();
 
       // 检查预算使用情况
       checkBudgetStatus();
     } catch (error: any) {
       console.error('❌ 添加费用失败:', error);
-      message.error({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>❌ 添加失败</div>
-            <div>无法保存费用记录</div>
-            <div style={{ marginTop: 8, fontSize: 12 }}>
-              <div>错误原因: {error.message}</div>
-              <div style={{ marginTop: 4, opacity: 0.8 }}>
-                • 请检查网络连接
-              </div>
-              <div style={{ opacity: 0.8 }}>
-                • 请检查表单填写是否正确
-              </div>
-            </div>
-          </div>
-        ),
-        duration: 6,
-      });
+      showErrorMessage(error);
     } finally {
       setIsSubmitting(false);
       console.log('🏁 费用添加流程结束');
@@ -544,18 +577,10 @@ const Budget = () => {
           console.log('🗑️ 开始删除费用记录:', record.id);
           await deleteExpense(record.id);
 
-          message.success({
-            content: (
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 删除成功</div>
-                <div>费用记录已删除</div>
-                <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-                  {EXPENSE_CATEGORIES[record.category]} - ¥{record.amount.toFixed(2)}
-                </div>
-              </div>
-            ),
-            duration: 3,
-          });
+          showSuccessMessage(
+            '✅ 删除成功',
+            `${EXPENSE_CATEGORIES[record.category]} - ¥${record.amount.toFixed(2)}`
+          );
 
           console.log('✅ 费用删除成功');
           await loadExpenses();
@@ -564,21 +589,7 @@ const Budget = () => {
           checkBudgetStatus();
         } catch (error: any) {
           console.error('❌ 删除失败:', error);
-          message.error({
-            content: (
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: 8 }}>❌ 删除失败</div>
-                <div>无法删除该费用记录</div>
-                <div style={{ marginTop: 8, fontSize: 12 }}>
-                  <div>错误原因: {error.message}</div>
-                  <div style={{ marginTop: 4, opacity: 0.8 }}>
-                    请稍后重试
-                  </div>
-                </div>
-              </div>
-            ),
-            duration: 5,
-          });
+          showErrorMessage(error);
         }
       },
     });
@@ -1097,7 +1108,7 @@ const Budget = () => {
               <Alert
                 message={
                   <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <span>💡 试试智能语音输入</span>
+                    <span>💡 试试智能语音输入（快捷键：Ctrl+V）</span>
                     <Button
                       type="primary"
                       icon={<AudioOutlined />}
@@ -1108,7 +1119,7 @@ const Budget = () => {
                     </Button>
                   </Space>
                 }
-                description="说出完整信息，例如：'午餐50元' 或 '打车30块'，AI 会自动识别金额、类别和描述"
+                description="说出完整信息，例如：'午餐50元' 或 '打车30块'，AI 会自动识别金额、类别和描述。按 Ctrl+V 快速启动语音输入。"
                 type="info"
                 showIcon={false}
                 style={{ marginBottom: 16 }}
@@ -1131,21 +1142,51 @@ const Budget = () => {
                 </Select>
               </Form.Item>
 
-              <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
+              <Form.Item
+                label="金额"
+                name="amount"
+                rules={[
+                  { required: true, message: '请输入金额' },
+                  {
+                    validator: (_, value) => {
+                      if (value && value <= 0) {
+                        return Promise.reject('金额必须大于0');
+                      }
+                      if (value && value > 1000000) {
+                        return Promise.reject('金额不能超过100万');
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
+                validateTrigger={['onChange', 'onBlur']}
+              >
                 <InputNumber
                   style={{ width: '100%' }}
-                  min={0}
+                  min={0.01}
+                  max={1000000}
                   precision={2}
                   prefix="¥"
-                  placeholder="请输入金额"
+                  placeholder="请输入金额（0.01 - 1,000,000）"
                   value={formValues.amount}
                   onChange={(value) => setFormValues(prev => ({ ...prev, amount: value || undefined }))}
                 />
               </Form.Item>
 
-              <Form.Item label="描述" name="description" rules={[{ required: true, message: '请输入描述' }]}>
+              <Form.Item
+                label="描述"
+                name="description"
+                rules={[
+                  { required: true, message: '请输入描述' },
+                  { min: 2, message: '描述至少需要2个字符' },
+                  { max: 50, message: '描述不能超过50个字符' }
+                ]}
+                validateTrigger={['onChange', 'onBlur']}
+              >
                 <Input
                   placeholder="例如：午餐、出租车费"
+                  maxLength={50}
+                  showCount
                   value={formValues.description}
                   onChange={(e) => setFormValues(prev => ({ ...prev, description: e.target.value }))}
                 />
