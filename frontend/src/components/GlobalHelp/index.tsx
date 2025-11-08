@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { FloatButton, Modal, Tabs, Typography, Space, Card, Tag, Divider } from 'antd';
+import { FloatButton, Modal, Tabs, Typography, Space, Card, Divider } from 'antd';
 import {
   QuestionCircleOutlined,
   RocketOutlined,
   BulbOutlined,
-  KeyOutlined,
   BookOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons';
@@ -214,81 +213,6 @@ const GlobalHelp = () => {
                     </li>
                   </ul>
                 </Paragraph>
-              </Card>
-            </Space>
-          </TabPane>
-
-          {/* 快捷键 */}
-          <TabPane
-            tab={
-              <span>
-                <KeyOutlined />
-                快捷键
-              </span>
-            }
-            key="shortcuts"
-          >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Card>
-                <Title level={5}>⌨️ 全局快捷键</Title>
-                <div className="shortcut-list">
-                  <div className="shortcut-item">
-                    <Tag color="blue">Ctrl + K</Tag>
-                    <Text>快速搜索</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="blue">Ctrl + N</Tag>
-                    <Text>创建新计划</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="blue">Ctrl + S</Tag>
-                    <Text>保存当前编辑</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="blue">Ctrl + /</Tag>
-                    <Text>显示帮助</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="blue">Esc</Tag>
-                    <Text>关闭对话框</Text>
-                  </div>
-                </div>
-              </Card>
-
-              <Card>
-                <Title level={5}>💬 对话界面快捷键</Title>
-                <div className="shortcut-list">
-                  <div className="shortcut-item">
-                    <Tag color="green">Enter</Tag>
-                    <Text>发送消息</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="green">Shift + Enter</Tag>
-                    <Text>换行</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="green">Ctrl + V</Tag>
-                    <Text>开始语音输入</Text>
-                  </div>
-                </div>
-              </Card>
-
-              <Card>
-                <Title level={5}>📝 编辑界面快捷键</Title>
-                <div className="shortcut-list">
-                  <div className="shortcut-item">
-                    <Tag color="orange">Ctrl + Z</Tag>
-                    <Text>撤销</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="orange">Ctrl + Y</Tag>
-                    <Text>重做</Text>
-                  </div>
-                  <div className="shortcut-item">
-                    <Tag color="orange">Ctrl + D</Tag>
-                    <Text>删除当前项</Text>
-                  </div>
-                </div>
               </Card>
             </Space>
           </TabPane>
