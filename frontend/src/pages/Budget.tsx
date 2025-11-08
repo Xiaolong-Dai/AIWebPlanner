@@ -293,8 +293,11 @@ const Budget = () => {
 
   // 语音识别结果处理（增强版）
   const handleVoiceResult = (text: string) => {
+    console.log('\n========================================');
     console.log('🎤 语音识别结果:', text);
     console.log('📍 当前输入字段模式:', voiceInputField);
+    console.log('📋 表单实例:', form);
+    console.log('========================================\n');
 
     // 智能解析语音输入
     const parsed = parseSmartExpense(text);
@@ -347,38 +350,55 @@ const Budget = () => {
       }
     }
 
+    console.log('\n========================================');
     console.log('📋 准备更新表单字段:', updates);
+    console.log('📋 更新前的表单值:', form.getFieldsValue());
+    console.log('========================================\n');
 
-    // 先关闭语音输入界面（现在 Form 不会被卸载，只是隐藏）
-    setShowVoiceInput(false);
-    setVoiceInputField(null);
+    // 使用 setTimeout 确保在下一个事件循环中更新
+    setTimeout(() => {
+      try {
+        // 先关闭语音输入界面
+        setShowVoiceInput(false);
+        setVoiceInputField(null);
 
-    // 立即更新表单（Form 组件仍然存在，只是被隐藏了）
-    try {
-      form.setFieldsValue(updates);
-      console.log('✅ 表单字段更新成功');
+        console.log('🔄 开始更新表单...');
 
-      // 验证表单字段是否真的更新了
-      const currentValues = form.getFieldsValue();
-      console.log('📊 当前表单值:', currentValues);
+        // 更新表单
+        form.setFieldsValue(updates);
 
-      // 显示成功消息
-      message.success({
-        content: (
-          <div>
-            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
-            {messages.map((msg, index) => (
-              <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
-            ))}
-          </div>
-        ),
-        duration: 3,
-      });
+        console.log('✅ setFieldsValue 调用完成');
 
-    } catch (error) {
-      console.error('❌ 表单更新失败:', error);
-      message.error('表单更新失败，请重试');
-    }
+        // 强制验证表单字段是否真的更新了
+        setTimeout(() => {
+          const currentValues = form.getFieldsValue();
+          console.log('\n========================================');
+          console.log('📊 更新后的表单值:', currentValues);
+          console.log('🔍 字段对比:');
+          console.log('  - amount:', updates.amount, '→', currentValues.amount);
+          console.log('  - category:', updates.category, '→', currentValues.category);
+          console.log('  - description:', updates.description, '→', currentValues.description);
+          console.log('========================================\n');
+
+          // 显示成功消息
+          message.success({
+            content: (
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: 8 }}>✅ 语音识别成功</div>
+                {messages.map((msg, index) => (
+                  <div key={index} style={{ fontSize: 13 }}>• {msg}</div>
+                ))}
+              </div>
+            ),
+            duration: 3,
+          });
+        }, 100);
+
+      } catch (error) {
+        console.error('❌ 表单更新失败:', error);
+        message.error('表单更新失败，请重试');
+      }
+    }, 50);
   };
 
   // 测试解析功能（仅开发环境）
